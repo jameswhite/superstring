@@ -1,0 +1,19 @@
+This directory holds sub-directories of base-system layouts:
+
+A base-system is defined as:
+    - host prerequisites (the minimum host config to which this may be applied)
+    - disk prerequisites (the minimum disk configuration to which this may be applied)
+    - disk partitioning scheme (including any special device issues LVM/RAID/crypto)
+    - source_media (the source media required to make the base install)
+    - packages (the packages from said media required to create the base install)
+    - strings (the work objects that need to be applied to the system to create it)
+
+The strings included in a base_system should be the minimum required to:
+    - secure the system
+    - add the configuration management agents
+
+From here, configuration management strings will be applied to the system to (un)configure the system
+
+This directory is meant to be used by your deployment system, be it a kickstart server, cobbler,
+fai, unattended or whatever your poison is.
+

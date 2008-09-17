@@ -1,1 +1,8 @@
-HERE is a base repository for the sanitized configurations of every system I manage. Personalization data should be stored elsewhere.
+HERE is a base repository for the sanitized configurations of every system I 
+manage.  Personalization data should be stored elsewhere. This entire 
+repository is meant to be checked out to your puppetmaster, or cfengine policy
+host and copied into masterfiles or the puppet config file repository.
+
+Note that this information should be generic, and system specific (personalization) 
+data should be in a meta-data repository elsewhere. I prefer LDAP, but really anything
+that you can query remotely would work. 

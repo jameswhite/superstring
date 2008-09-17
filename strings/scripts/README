@@ -1,0 +1,10 @@
+Use this directory only to bootstrap your configuration management system and 
+to secure the initial deployment.  If you don't, you'll undoubtedly end up 
+replicating work in here and in the configuration management directories. 
+
+Installation should be about Partitioning, deployig the base system, securing
+the base system, and bootstrapping the configuration management system, any 
+install system that does more than that is overstepping it's role and adding 
+redundant work (IMHO, discussion/arguments always welcome, preferably over beer).
+
+Besides, not replicating work is what this project is all about.
