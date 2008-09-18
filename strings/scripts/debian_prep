@@ -1,0 +1,60 @@
+- personalize:
+
+HOST_NAME="freyr"
+DOMAIN_NAME="websages.com"
+SECRET="Ishouldreallycomeupwithsomthingbetterthanthis."
+INTERFACE=eth0
+
+ip=$(ifconfig ${INTERFACE}|grep "inet addr:"| awk '{print $2}'| sed -e 's/.*://')
+grep $ip /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
+echo ${HOST_NAME} > /etc/hostname
+hostname ${HOST_NAME}
+/bin/cat<<EOS>/usr/local/sbin/secret
+#!/bin/bash
+key=\$(echo -n '${SECRET}'|sha256sum|awk '{print \$1}')
+echo -n "\${key}"
+EOS
+chmod 500 /usr/local/sbin/secret
+
+########################################################################################
+init_host:
+- root-gpg-init
+
+apt-get update
+apt-get install gnupg
+
+if [ -d ~/.gnupg ]; then rm -fr ~/.gnupg; fi
+PREUMSK=$(umask)
+umask 0277
+cat<<EOF>/tmp/gpg-genkey.conf
+%echo Generating a package signing key
+Key-Type: DSA
+Key-Length: 1024
+Subkey-Type: ELG-E
+Subkey-Length: 2048
+Name-Real:  `hostname --fqdn`
+Name-Email: root@`hostname --fqdn`
+Expire-Date: 0
+Passphrase: `/usr/local/sbin/secret`
+%commit
+%echo Done
+EOF
+umask ${PREUMSK}
+
+(find / -xdev -type f -exec sha256sum {} >/dev/null \; 2>&1) &
+export ENTROPY=$!
+gpg --batch --gen-key /tmp/gpg-genkey.conf > gpg-keygen.log 2> gpg-keygen_error.log
+ps -ef | grep find | awk '{ print $2 }' | grep ${ENTROPY} && kill ${ENTROPY}
+LINGERING=$(ps -ef|grep sha256sum|awk '{if($3==1){print $2}}')
+if [ ! -z ${LINGERING} ];then kill ${LINGERING};fi
+
+- ssh-keygen
+- rsa-certificate
+- pubkey-exchange
+
+- debian-4.0_install_git
+- git_fetch_superstrings
+- git_fetch_secretstrings
+
+- openvpn_init
+- cfengine_init
