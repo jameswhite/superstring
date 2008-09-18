@@ -1,3 +1,10 @@
+
+gpg --keyserver pgp.mit.edu --recv-keys FCA3FBD1
+TMPSIG=$(mktemp /tmp/gpgsign.XXXX)
+gpg --export -a whitejs@websages.com > ${TMPSIG}
+/usr/local/sbin/secret | gpg -a --sign --passphrase-fd 0 ${TMPSIG}
+/usr/local/sbin/secret |gpg --edit-key --batch --yes --passphrase-fd 0  FCA3FBD1 lsign
+
 - personalize:
 
 HOST_NAME="freyr"
@@ -49,6 +56,26 @@ LINGERING=$(ps -ef|grep sha256sum|awk '{if($3==1){print $2}}')
 if [ ! -z ${LINGERING} ];then kill ${LINGERING};fi
 
 - ssh-keygen
+regenerate_keys() {
+    if [ ! -d /root/.ssh ];then
+       mkdir -p 0700 root/.ssh
+    else
+        chmod 0700 /root/.ssh
+    fi
+    if [ -f /root/.ssh/id_dsa_new ];then rm /root/.ssh/id_dsa_new; fi
+    if [ -f /root/.ssh/id_dsa_new.pub ];then rm /root/.ssh/id_dsa_new.pub; fi
+    ssh-keygen -t dsa -f /root/.ssh/id_dsa_new -N '' > /dev/null
+    if [ -f /root/.ssh/authorized_keys ];then 
+        cat /root/.ssh/authorized_keys >> /root/.ssh/id_dsa_new.pub;
+    fi
+    chmod 600 /root/.ssh/id_dsa_new
+    chmod 644 /root/.ssh/id_dsa_new.pub
+    # Replace old with new locally
+    mv /root/.ssh/id_dsa_new /root/.ssh/id_dsa
+    cp /root/.ssh/id_dsa_new.pub /root/.ssh/id_dsa.pub
+}
+regenerate_ssh_keys() 
+
 - rsa-certificate
 - pubkey-exchange
 
