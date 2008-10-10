@@ -1,0 +1,100 @@
+#!/bin/bash -x
+/usr/bin/apt-get update && /usr/bin/apt-get install shorewall
+
+if [ -f /etc/shorewall/shorewall.conf ];then 
+    /bin/mv /etc/shorewall/shorewall.conf /etc/shorewall/shorewall.conf.dist
+fi
+
+/bin/cat<<EOSWC>/etc/shorewall/shorewall.conf
+STARTUP_ENABLED=Yes
+VERBOSITY=1
+LOGFILE=/var/log/messages
+LOGFORMAT="Shorewall:%s:%s:"
+LOGTAGONLY=No
+LOGRATE=
+LOGBURST=
+LOGALLNEW=
+BLACKLIST_LOGLEVEL=
+MACLIST_LOG_LEVEL=info
+TCP_FLAGS_LOG_LEVEL=info
+RFC1918_LOG_LEVEL=info
+SMURF_LOG_LEVEL=info
+LOG_MARTIANS=No
+IPTABLES=
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin
+SHOREWALL_SHELL=/bin/sh
+SUBSYSLOCK=""
+MODULESDIR=
+CONFIG_PATH=/etc/shorewall:/usr/share/shorewall
+RESTOREFILE=
+IPSECFILE=zones
+IP_FORWARDING=Keep
+ADD_IP_ALIASES=Yes
+ADD_SNAT_ALIASES=No
+RETAIN_ALIASES=No
+TC_ENABLED=Internal
+TC_EXPERT=No
+CLEAR_TC=Yes
+MARK_IN_FORWARD_CHAIN=No
+CLAMPMSS=No
+ROUTE_FILTER=Yes
+DETECT_DNAT_IPADDRS=No
+MUTEX_TIMEOUT=60
+ADMINISABSENTMINDED=Yes
+BLACKLISTNEWONLY=Yes
+DELAYBLACKLISTLOAD=No
+MODULE_SUFFIX=
+DISABLE_IPV6=Yes
+BRIDGING=No
+DYNAMIC_ZONES=No
+PKTTYPE=Yes
+RFC1918_STRICT=No
+MACLIST_TABLE=filter
+MACLIST_TTL=
+SAVE_IPSETS=No
+MAPOLDACTIONS=No
+FASTACCEPT=No
+IMPLICIT_CONTINUE=Yes
+HIGH_ROUTE_MARKS=No
+BLACKLIST_DISPOSITION=DROP
+MACLIST_DISPOSITION=REJECT
+TCP_FLAGS_DISPOSITION=DROP
+#LAST LINE -- DO NOT REMOVE
+EOSWC
+
+/bin/cat<<EOSWI>/etc/shorewall/interfaces
+###############################################################################
+#ZONE   INTERFACE       BROADCAST       OPTIONS
+net     eth0            detect          norfc1918,routefilter,dhcp,tcpflags,logmartians,nosmurfs
+#LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
+EOSWI
+
+/bin/cat<<EOSWP>/etc/shorewall/policy
+###############################################################################
+#SOURCE         DEST            POLICY          LOG LEVEL       LIMIT:BURST
+$FW             net             ACCEPT
+net             $FW             DROP            info
+net             all             DROP            info
+# The FOLLOWING POLICY MUST BE LAST
+all             all             REJECT          info
+#LAST LINE -- ADD YOUR ENTRIES ABOVE THIS LINE -- DO NOT REMOVE
+EOSWP
+
+/bin/cat<<EOSWR>/etc/shorewall/rules
+#############################################################################################################
+#ACTION         SOURCE          DEST            PROTO   DEST    SOURCE          ORIGINAL  RATE             USER/
+#                                                       PORT    PORT(S)         DEST      LIMIT            GROUP
+# Reject Ping from the "bad" net zone.. and prevent your log from being flooded..
+Ping/REJECT     net             $FW
+# Permit all ICMP traffic FROM the firewall TO the net zone
+ACCEPT          $FW             net             icmp
+# Allow ssh from anywhere
+ACCEPT          net             $FW              tcp    22
+#LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
+EOSWR
+
+/bin/cat<<EOEDS>/etc/default/shorewall
+startup=1
+#    wait_interface="ppp0"
+EOEDS
+/etc/init.d/shorewall start
