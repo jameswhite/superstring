@@ -32,7 +32,7 @@ chmod 644 /etc/default/cfengine2
 
 /bin/cat<<EOCFS>/etc/cfengine/cfservd
 control:
-        domain                          = ( ExecResult(/bin/dnsdomainname) )
+        domain                          = ( ExecResult("/bin/dnsdomainname") )
         sysadm                          = ( "sysadm@\${domain}" )
         workdir                         = ( "/var/lib/cfengine2" )
         bindir                          = ( "/usr/sbin" )
@@ -43,9 +43,8 @@ control:
         masterfiles                     = ( "/var/lib/cfengine2/masterfiles" )
         hostfiles                       = ( "/var/lib/cfengine2/privatefiles" )
         MaxConnections = ( 50 )
-        # is using the default route interface a good assumption? probably...
-        interface                       = ( ExecResult(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1) )
-        IPAddress                       = ( ExecResult(/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}') )
+        interface                       = ( ExecResult("/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1") )
+        IPAddress                       = ( ExecResult("/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
         AllowConnectionsFrom            = ( \${IPAddress}/32 )
 admit:
         any::
@@ -59,8 +58,8 @@ EOCFS
 # begin update.cf
 control:
         actionsequence          = ( copy tidy )
-        domain                  = ( ExecResult(/bin/dnsdomainname) )
-        policyhost              = ( ExecResult(/bin/hostname -f) )
+        domain                  = ( ExecResult("/bin/dnsdomainname") )
+        policyhost              = ( ExecResult("/bin/hostname -f") )
         master_cfinput          = ( /var/lib/cfengine2/masterfiles/inputs )
         workdir                 = ( /var/lib/cfengine2 )
    linux::
@@ -80,13 +79,13 @@ EOCFU
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
         actionsequence          = ( editfiles copy processes )
-        domain                  = ( ExecResult(/bin/dnsdomainname) )
+        domain                  = ( ExecResult("/bin/dnsdomainname") )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
         configroot              = ( /var/lib/cfengine2/masterfiles/config )
         moduleroot              = ( /var/lib/cfengine2/masterfiles/modules )
         ChecksumUpdates         = ( on )
-        policyhost              = ( ExecResult(/bin/hostname -f) )
+        policyhost              = ( ExecResult("/bin/hostname -f") )
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
 editfiles:
