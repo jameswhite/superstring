@@ -1,0 +1,89 @@
+#!/bin/bash
+#############################################################
+# Prepare the system for cfengine, set up host as policyhost
+# and as policy client for itself.
+#############################################################
+[ "$(/bin/cat /etc/debian_version)" == "4.0" ] || exit
+/usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
+/bin/cat<<EOEDC>/etc/default/cfengine2
+# Cfengine2 defaults configuration  -*- sh -*-
+# Set variable to 1 to start the daemon; 0 otherwise.
+# Note that cfservd will only run if you have put a file into
+# /etc/cfengine/cfservd.conf, even if you set RUN_CFSERVD.
+RUN_CFSERVD=1
+RUN_CFEXECD=1
+RUN_CFENVD=1
+CFSERVD_ARGS=""
+#CFSERVD_ARGS="--multithread"
+EOEDC
+chmod 644 /etc/default/cfengine2
+
+/bin/cat<<EOCFS>/etc/cfengine/cfservd
+control:
+        domain                          = ( ExecResult(/bin/dnsdomainname) )
+        sysadm                          = ( "sysadm@\${domain}" )
+        workdir                         = ( "/var/lib/cfengine2" )
+        bindir                          = ( "/usr/sbin" )
+        cfrunCommand                    = ( "\${bindir}/cfagent" )
+        IfElapsed                       = ( 1 )
+        AllowUsers                      = ( root )
+        LogAllConnections               = ( on )
+        masterfiles                     = ( "/var/lib/cfengine2/masterfiles" )
+        hostfiles                       = ( "/var/lib/cfengine2/privatefiles" )
+        MaxConnections = ( 50 )
+        # is using the default route interface a good assumption? probably...
+        interface                       = ( ExecResult(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1) )
+        IPAddress                       = ( ExecResult(/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}') )
+        AllowConnectionsFrom            = ( \${IPAddress}/32 )
+admit:
+        any::
+                \$(cfrunCommand)                                         *
+                \$(masterfiles)/config                                   *
+                \$(masterfiles)/inputs                                   *
+                \$(masterfiles)/modules            
+EOCFS
+
+/bin/cat<<EOCFU>/etc/cfengine/update.conf
+# begin update.cf
+control:
+        actionsequence          = ( copy tidy )
+        domain                  = ( ExecResult(/bin/dnsdomainname) )
+        policyhost              = ( ExecResult(/bin/hostname -f) )
+        master_cfinput          = ( /var/lib/cfengine2/masterfiles/inputs )
+        workdir                 = ( /var/lib/cfengine2 )
+   linux::
+        cf_install_dir  = ( /usr/sbin )
+        SplayTime       = ( 1 )
+copy:
+    \$(master_cfinput)           dest=\$(workdir)/inputs
+                                r=inf
+                                mode=700
+                                type=binary
+                                server=\$(policyhost)
+                                trustkey=true
+tidy:
+        \$(workdir)/outputs pattern=* age=7
+EOCFU
+
+/bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
+control:
+        actionsequence          = ( editfiles copy processes )
+        domain                  = ( ExecResult(/bin/dnsdomainname) )
+        smtpserver              = ( localhost )
+        sysadm                  = ( "sysadm@\${domain}" )
+        configroot              = ( /var/lib/cfengine2/masterfiles/config )
+        moduleroot              = ( /var/lib/cfengine2/masterfiles/modules )
+        ChecksumUpdates         = ( on )
+        policyhost              = ( ExecResult(/bin/hostname -f) )
+processes:
+        "cfservd" restart "/usr/sbin/cfservd"
+editfiles:
+   linux::
+   { /etc/crontab
+        DeleteLinesContaining "cfexecd"
+   }
+groups:
+        control_node            = ( odin )
+
+import:
+EOCFA
