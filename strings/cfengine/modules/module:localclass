@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+# This simply defines any classes in /etc/localclasses
+# It is used to bootstrap the first ldap server
+use strict;
+use FileHandle; 
+exit unless(-f "/etc/cfengine/localclasses");
+
+my $fh = new FileHandle "/etc/cfengine/localclasses", "r";
+if (defined $fh) {
+    while(my $line=<$fh>){
+        chomp($line);
+        $line=~s/ //g;
+        print "+line\n";
+    }
+    undef $fh;       # automatically closes the file
+}
