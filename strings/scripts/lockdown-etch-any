@@ -1,6 +1,6 @@
 #!/bin/bash -x
+export iface=$(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|/usr/bin/head -1)
 /usr/bin/apt-get update && /usr/bin/apt-get install -y  shorewall
-
 if [ -f /etc/shorewall/shorewall.conf ];then 
     /bin/mv /etc/shorewall/shorewall.conf /etc/shorewall/shorewall.conf.dist
 fi
@@ -65,7 +65,7 @@ EOSWC
 /bin/cat<<EOSWI>/etc/shorewall/interfaces
 ###############################################################################
 #ZONE   INTERFACE       BROADCAST       OPTIONS
-net     eth0            detect          norfc1918,routefilter,dhcp,tcpflags,logmartians,nosmurfs
+net     ${iface}            detect          norfc1918,routefilter,dhcp,tcpflags,logmartians,nosmurfs
 #LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
 EOSWI
 
