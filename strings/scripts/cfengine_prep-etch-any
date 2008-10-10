@@ -1,16 +1,17 @@
-#!/bin/bash
+#!/bin/bash -x
 #############################################################
 # Prepare the system for cfengine, set up host as policyhost
 # and as policy client for itself.
 #############################################################
-grep $ip /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
+iface=$(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1)
+ipaddr=$(/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}')
+
+grep $ipaddr /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
 grep $hostname /etc/hostname || echo ${HOST_NAME} > /etc/hostname
 hostname ${HOST_NAME}
 
 [ "$(/bin/cat /etc/debian_version)" == "4.0" ] || exit
 /usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
-iface=$(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1)
-ipaddr=$(/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}')
 (cd /var/lib/cfengine/ppkeys; cp localhost.pub root-127.0.0.1.pub)
 (cd /var/lib/cfengine/ppkeys; cp localhost.pub root-${ipaddr}.pub)
 
