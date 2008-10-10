@@ -1,5 +1,5 @@
 #!/bin/bash -x
-/usr/bin/apt-get update && /usr/bin/apt-get install shorewall
+/usr/bin/apt-get update && /usr/bin/apt-get install -y  shorewall
 
 if [ -f /etc/shorewall/shorewall.conf ];then 
     /bin/mv /etc/shorewall/shorewall.conf /etc/shorewall/shorewall.conf.dist
@@ -93,7 +93,7 @@ ACCEPT          net             \$FW              tcp    22
 #LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
 EOSWR
 
-/bin/cat<<EOSWZ>/etc/default/shorewall
+/bin/cat<<EOSWZ>/etc/shorewall/zones
 ###############################################################################
 #ZONE   TYPE    OPTIONS                 IN                      OUT
 #                                       OPTIONS                 OPTIONS
