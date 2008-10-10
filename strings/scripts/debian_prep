@@ -1,4 +1,3 @@
-
 gpg --keyserver pgp.mit.edu --recv-keys FCA3FBD1
 TMPSIG=$(mktemp /tmp/gpgsign.XXXX)
 gpg --export -a whitejs@websages.com > ${TMPSIG}
