@@ -93,6 +93,15 @@ ACCEPT          net             \$FW              tcp    22
 #LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
 EOSWR
 
+/bin/cat<<EOSWZ>/etc/default/shorewall
+###############################################################################
+#ZONE   TYPE    OPTIONS                 IN                      OUT
+#                                       OPTIONS                 OPTIONS
+fw      firewall
+net     ipv4
+#LAST LINE - ADD YOUR ENTRIES ABOVE THIS ONE - DO NOT REMOVE
+EOSWZ
+
 /bin/cat<<EOEDS>/etc/default/shorewall
 startup=1
 #    wait_interface="ppp0"
