@@ -98,3 +98,9 @@ groups:
 
 import:
 EOCFA
+
+/etc/init.d/cfengine2 stop
+/etc/init.d/cfengine2 start
+/usr/sbin/cfexecd -F
+/usr/sbin/cfexecd -F
+/usr/sbin/cfagent -vKq
