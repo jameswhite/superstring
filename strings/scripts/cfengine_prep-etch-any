@@ -14,8 +14,8 @@ hostname ${HOST_NAME}
 
 [ "$(/bin/cat /etc/debian_version)" == "4.0" ] || exit
 /usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
-(cd /var/lib/cfengine/ppkeys; cp localhost.pub root-127.0.0.1.pub)
-(cd /var/lib/cfengine/ppkeys; cp localhost.pub root-${ipaddr}.pub)
+(cd /var/lib/cfengine2/ppkeys; cp localhost.pub root-127.0.0.1.pub)
+(cd /var/lib/cfengine2/ppkeys; cp localhost.pub root-${ipaddr}.pub)
 
 /bin/cat<<EOEDC>/etc/default/cfengine2
 # Cfengine2 defaults configuration  -*- sh -*-
