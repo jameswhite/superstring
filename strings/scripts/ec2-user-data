@@ -1,0 +1,33 @@
+#!/bin/bash
+###################################################
+# This should be called by all ec2 AMI's rc.local
+###################################################
+
+# fqdn: hostname.fqdn.com
+# secret: Thisshouldbesomethingyounevertellanyonez,k?thxbai.
+# stringroot: http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F
+# [super]strings: script1_name
+# [super]strings: script2_name
+# [super]strings: script3_name
+# (I should make this yaml...)
+
+FQDN=$(wget -qO - http://169.254.169.254/latest/user-data| grep "^ *fqdn:"|\
+    sed -e 's/.*fqdn: *//g')
+hostname ${FQDN}
+SECRET=$(wget -qO - http://169.254.169.254/latest/user-data| \
+    grep "^ *secret:"|sed -e 's/.*secret: *//g')
+STRINGROOT=$(wget -qO - http://169.254.169.254/latest/user-data| \
+    grep "^ *stringroot:"|sed -e 's/.*stringroot: *//g')
+if [ -z ${STRINGROOT} ];then
+    STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
+fi
+LOGDIR="/var/log/superstring"
+if [ ! -d ${LOGDIR} ];then mkdir -p ${LOGDIR};fi
+export FQDN SECRET STRINGROOT LOGDIR
+
+for script in `wget -qO - http://169.254.169.254/latest/user-data |\
+        egrep "^ *string:|^ *superstring:"| sed -e 's/.*string: *//g'`;do
+    wget -O /tmp/${script} "${STRINGROOT}${script}?raw=true"
+    chmod 755 /tmp/${script}
+    /tmp/${script} > ${LOGDIR}/${script}.log 2>&1
+done
