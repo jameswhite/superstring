@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 ###################################################
 # This should be called by all ec2 AMI's rc.local
 ###################################################
@@ -9,7 +10,6 @@
 # [super]strings: script1_name
 # [super]strings: script2_name
 # [super]strings: script3_name
-# (I should make this yaml...)
 
 FQDN=$(wget -qO - http://169.254.169.254/latest/user-data| grep "^ *fqdn:"|\
     sed -e 's/.*fqdn: *//g')
@@ -27,7 +27,13 @@ export FQDN SECRET STRINGROOT LOGDIR
 
 for script in `wget -qO - http://169.254.169.254/latest/user-data |\
         egrep "^ *string:|^ *superstring:"| sed -e 's/.*string: *//g'`;do
-    wget -O /tmp/${script} "${STRINGROOT}${script}?raw=true"
+    LENGTH=0; # github is giving me 0 byte replies...
+    ATTEMPT=0
+    while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 5 ]; do
+        /usr/bin/wget -O /tmp/${script} "${STRINGROOT}${script}?raw=true"
+        LENGTH=$(/usr/bin/wc -l /tmp/${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
+        ATTEMPT=`expr ${ATTEMPT} + 1`
+    done
     chmod 755 /tmp/${script}
     /tmp/${script} > ${LOGDIR}/${script}.log 2>&1
 done
