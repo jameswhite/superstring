@@ -1,0 +1,86 @@
+gpg --keyserver pgp.mit.edu --recv-keys FCA3FBD1
+TMPSIG=$(mktemp /tmp/gpgsign.XXXX)
+gpg --export -a whitejs@websages.com > ${TMPSIG}
+/usr/local/sbin/secret | gpg -a --sign --passphrase-fd 0 ${TMPSIG}
+/usr/local/sbin/secret | gpg --edit-key --batch --yes --passphrase-fd 0  FCA3FBD1 lsign
+
+- personalize:
+
+HOST_NAME="freyr"
+DOMAIN_NAME="websages.com"
+SECRET="Ishouldreallycomeupwithsomthingbetterthanthis."
+INTERFACE=eth0
+
+ip=$(ifconfig ${INTERFACE}|grep "inet addr:"| awk '{print $2}'| sed -e 's/.*://')
+grep $ip /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
+echo ${HOST_NAME} > /etc/hostname
+hostname ${HOST_NAME}
+/bin/cat<<EOS>/usr/local/sbin/secret
+#!/bin/bash
+key=\$(echo -n '${SECRET}'|sha256sum|awk '{print \$1}')
+echo -n "\${key}"
+EOS
+chmod 500 /usr/local/sbin/secret
+
+########################################################################################
+init_host:
+- root-gpg-init
+
+apt-get update
+apt-get install gnupg
+
+if [ -d ~/.gnupg ]; then rm -fr ~/.gnupg; fi
+PREUMSK=$(umask)
+umask 0277
+cat<<EOF>/tmp/gpg-genkey.conf
+%echo Generating a package signing key
+Key-Type: DSA
+Key-Length: 1024
+Subkey-Type: ELG-E
+Subkey-Length: 2048
+Name-Real:  `hostname --fqdn`
+Name-Email: root@`hostname --fqdn`
+Expire-Date: 0
+Passphrase: `/usr/local/sbin/secret`
+%commit
+%echo Done
+EOF
+umask ${PREUMSK}
+
+(find / -xdev -type f -exec sha256sum {} >/dev/null \; 2>&1) &
+export ENTROPY=$!
+gpg --batch --gen-key /tmp/gpg-genkey.conf > gpg-keygen.log 2> gpg-keygen_error.log
+ps -ef | grep find | awk '{ print $2 }' | grep ${ENTROPY} && kill ${ENTROPY}
+LINGERING=$(ps -ef|grep sha256sum|awk '{if($3==1){print $2}}')
+if [ ! -z ${LINGERING} ];then kill ${LINGERING};fi
+
+- ssh-keygen
+regenerate_keys() {
+    if [ ! -d /root/.ssh ];then
+       mkdir -p 0700 root/.ssh
+    else
+        chmod 0700 /root/.ssh
+    fi
+    if [ -f /root/.ssh/id_dsa_new ];then rm /root/.ssh/id_dsa_new; fi
+    if [ -f /root/.ssh/id_dsa_new.pub ];then rm /root/.ssh/id_dsa_new.pub; fi
+    ssh-keygen -t dsa -f /root/.ssh/id_dsa_new -N '' > /dev/null
+    if [ -f /root/.ssh/authorized_keys ];then 
+        cat /root/.ssh/authorized_keys >> /root/.ssh/id_dsa_new.pub;
+    fi
+    chmod 600 /root/.ssh/id_dsa_new
+    chmod 644 /root/.ssh/id_dsa_new.pub
+    # Replace old with new locally
+    mv /root/.ssh/id_dsa_new /root/.ssh/id_dsa
+    cp /root/.ssh/id_dsa_new.pub /root/.ssh/id_dsa.pub
+}
+regenerate_ssh_keys() 
+
+- rsa-certificate
+- pubkey-exchange
+
+- debian-4.0_install_git
+- git_fetch_superstrings
+- git_fetch_secretstrings
+
+- openvpn_init
+- cfengine_init
