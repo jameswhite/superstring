@@ -29,10 +29,11 @@ for script in `wget -qO - http://169.254.169.254/latest/user-data |\
         egrep "^ *string:|^ *superstring:"| sed -e 's/.*string: *//g'`;do
     LENGTH=0; # github is giving me 0 byte replies...
     ATTEMPT=0
-    while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 5 ]; do
-        /usr/bin/wget -O /tmp/${script} "${STRINGROOT}${script}?raw=true"
+    while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 10 ]; do
+        /usr/bin/wget -qO /tmp/${script} "${STRINGROOT}${script}?raw=true"
         LENGTH=$(/usr/bin/wc -l /tmp/${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
         ATTEMPT=`expr ${ATTEMPT} + 1`
+        echo "script - ${script} (attempt ${ATTEMPT}) ${LENGTH} line reply."
     done
     chmod 755 /tmp/${script}
     /tmp/${script} > ${LOGDIR}/${script}.log 2>&1
