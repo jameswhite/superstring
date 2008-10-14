@@ -1,0 +1,8 @@
+#!/bin/bash -x
+wget -O /tmp/igea \
+http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2Finstall_git-etch-any?raw=true
+    chmod 755 /tmp/igea; /tmp/igea
+(cd /tmp; git clone git://github.com/fapestniegd/superstring.git)
+/tmp/superstring/tree/master/strings/scripts/lockdown-etch-any
+/tmp/superstring/tree/master/strings/scripts/cfengine_prep-etch-any
+
