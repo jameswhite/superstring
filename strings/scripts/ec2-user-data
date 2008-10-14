@@ -11,6 +11,7 @@ export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 # [super]strings: script2_name
 # [super]strings: script3_name
 
+
 FQDN=$(wget -qO - http://169.254.169.254/latest/user-data| grep "^ *fqdn:"|\
     sed -e 's/.*fqdn: *//g')
 hostname ${FQDN}
@@ -26,7 +27,7 @@ if [ ! -d ${LOGDIR} ];then mkdir -p ${LOGDIR};fi
 export FQDN SECRET STRINGROOT LOGDIR
 
 for script in `wget -qO - http://169.254.169.254/latest/user-data |\
-        egrep "^ *string:|^ *superstring:"| sed -e 's/.*string: *//g'`;do
+        egrep "^ *string:|^ *superstring:"| sed -e 's/.*string: *//g'|grep -v "$(basename $0)"`;do
     LENGTH=0; # github is giving me 0 byte replies...
     ATTEMPT=0
     while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 10 ]; do
