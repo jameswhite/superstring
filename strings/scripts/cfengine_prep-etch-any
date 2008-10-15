@@ -3,42 +3,41 @@
 # Prepare the system for cfengine, set up host as policyhost
 # and as policy client for itself.
 #############################################################
-if [ -f /etc/redhat-release ];then
-    CFROOT=/var/cfengine
-elif [ -f /etc/debian_version ];then
-    CFROOT="/var/lib/cfengine2"
-else
-    echo "Cannot determine distribution or unsupported distribution";
-    exit -1;
-fi
-export CFROOT
 
+# First we set up some variables we need...
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 iface=$(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|/usr/bin/head -1)
 ipaddr=$(/sbin/ifconfig ${iface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print $1}')
 hostname=$(hostname)
-
 grep $ipaddr /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
 grep $hostname /etc/hostname || echo ${HOST_NAME} > /etc/hostname
 hostname ${HOST_NAME}
 
-[ "$(/bin/cat /etc/debian_version)" == "4.0" ] || exit
-/usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
+
+# Then we install cfengine and set it up to run for either RH or Debian
+if [ -f /etc/redhat-release ];then
+    export CFROOT=/var/cfengine
+    yum update -y && yum install -y cfengine
+    /etc/init.d/cfengine stop
+    # more stuff needed here
+elif [ -f /etc/debian_version ];then
+    export CFROOT="/var/lib/cfengine2"
+    /usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
+    /etc/init.d/cfengine2 stop
+    cp /etc/default/cfengine2 /etc/default/cfengine2.dist
+    sed -e's/=0 *$/=1/' /etc/default/cfengine2.dist > /etc/default/cfengine2
+    chmod 644 /etc/default/cfengine2
+else
+    echo "Cannot determine distribution or unsupported distribution";
+    exit -1;
+fi
+
+# Then we copy our ppkey in order to authenticate self to self:
 (cd ${CFROOT}/ppkeys; cp localhost.pub root-127.0.0.1.pub)
 (cd ${CFROOT}/ppkeys; cp localhost.pub root-${ipaddr}.pub)
 
-/bin/cat<<EOEDC>/etc/default/cfengine2
-# Cfengine2 defaults configuration  -*- sh -*-
-# Set variable to 1 to start the daemon; 0 otherwise.
-# Note that cfservd will only run if you have put a file into
-# /etc/cfengine/cfservd.conf, even if you set RUN_CFSERVD.
-RUN_CFSERVD=1
-RUN_CFEXECD=1
-RUN_CFENVD=1
-CFSERVD_ARGS=""
-#CFSERVD_ARGS="--multithread"
-EOEDC
-chmod 644 /etc/default/cfengine2
-
+# Write out the default config files for a standalone system
+#################################################################################################
 /bin/cat<<EOCFS>/etc/cfengine/cfservd
 control:
         domain                          = ( ExecResult("/bin/dnsdomainname") )
@@ -62,7 +61,9 @@ admit:
                 \$(masterfiles)/inputs                                   *
                 \$(masterfiles)/modules            
 EOCFS
+#################################################################################################
 
+#################################################################################################
 /bin/cat<<EOCFU>/etc/cfengine/update.conf
 # begin update.cf
 control:
@@ -84,10 +85,12 @@ copy:
 tidy:
         \$(workdir)/outputs pattern=* age=7
 EOCFU
+#################################################################################################
 
+#################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
-        actionsequence          = ( editfiles copy processes )
+        actionsequence          = ( module:addclass editfiles copy processes )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
@@ -103,45 +106,20 @@ editfiles:
         DeleteLinesContaining "cfexecd"
    }
 groups:
-        control_node            = ( odin )
+        standalone_system            = ( all )
 
 import:
+#       standalone_system.linux::
+#           linux/init.cf
 EOCFA
+#################################################################################################
 
-if [ ! -d /usr/local/sbin ]; then mkdir /usr/local/sbin;fi 
-/bin/cat<<EOG2M>/usr/local/sbin/git2masterfiles
-#!/bin/bash
-CFETC="/etc/cfengine"
-CFLIB="${CFROOT}"
-MASTERFILES="\${CFLIB}/masterfiles"
-GITROOT="\${CFLIB}/gitroot"
-export CFETC CFLIB MASTERFILES GITROOT
+# Fetch our public git repository 
+TMPDIR=$(mktemp -d /var/tmp/gitroot.XXXXX)
+(cd ${TMPDIR} ;git clone git://github.com/fapestniegd/superstring.git)
+rsync -avzPC ${TMPDIR}/strings/cfengine/ ${MASTERFILES}/ > /dev/null 2>&1
 
-if [ ! -d \${MASTERFILES} ]; then mkdir -p \${MASTERFILES}; fi
-if [ ! -d \${CFETC} ]; then mkdir -p \${CFETC}; fi
-if [ ! -d \${GITROOT} ]; then mkdir -p \${GITROOT};fi 
-
-cd \${GITROOT}
-
-# order of the repos matter, the last will clobber the first... can we even order in LDAP?
-# /*FIXME*/ ldapsearch here for all repositories
-GITREPOS="git://github.com/fapestniegd/wcyd.git git://github.com/fapestniegd/superstring.git"
-for repo in \`echo "\${GITREPOS}"\`; do 
-    repodir=\$(/usr/bin/basename  \${repo}|sed -e 's/\.git\$//g')
-    if [ ! -d \${GITROOT}/\${repodir} ]; then
-        /usr/bin/git clone \${repo} > /dev/null 2>&1
-    else 
-        (cd \${GITROOT}/\${repodir}; git pull > /dev/null 2>&1)
-    fi
-    if [ -d \${GITROOT}/\${repodir}/cfengine ];then
-        /usr/sbin/rsync -azPC \${GITROOT}/\${repodir}/strings/cfengine/ \${MASTERFILES}/ > /dev/null 2>&1
-    fi
-done
-EOG2M
-chmod 744 /usr/local/sbin/git2masterfiles
-
-/usr/local/sbin/git2masterfiles
-/etc/init.d/cfengine2 stop
+# Fire up cfengine, and get things going
 /etc/init.d/cfengine2 start
 /usr/sbin/cfexecd -F
 /usr/sbin/cfexecd -F
