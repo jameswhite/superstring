@@ -54,7 +54,6 @@ control:
         interface                       = ( ExecResult("/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1") )
         IPAddress                       = ( ExecResult("/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
         AllowConnectionsFrom            = ( \${IPAddress}/32 )
-        AddInstallable                  = ( ldap_server )
 admit:
         any::
                 \$(cfrunCommand)                                         *
@@ -68,11 +67,7 @@ EOCFS
 /bin/cat<<EOCFU>/etc/cfengine/update.conf
 # begin update.cf
 control:
-        actionsequence          = ( 
-                                    module:lsb_classes
-                                    module:addclass 
-                                    copy tidy 
-                                  )
+        actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
         master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
@@ -80,7 +75,6 @@ control:
         master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
         moduledirectory         = ( ${CFROOT}/modules )
         workdir                 = ( ${CFROOT} )
-        AddInstallables         = ( etch ldap_server )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
