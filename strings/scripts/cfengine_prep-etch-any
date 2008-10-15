@@ -90,10 +90,8 @@ EOCFU
 #################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
-        prepm                   = ( PrepModule(module:lsb) PrepModule(module:allclass) )
+        prepm                   = ( PrepModule(module:addclass,"") )
         actionsequence          = ( 
-                                    module:lsb_classes
-                                    module:addclass 
                                     copy editfiles processes shellcommands 
                                   )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
@@ -103,7 +101,7 @@ control:
         moduledirectory         = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        AddInstallable          = ( etch ldap_server )
+
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
 editfiles:
