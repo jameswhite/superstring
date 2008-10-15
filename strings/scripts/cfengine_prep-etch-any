@@ -74,6 +74,7 @@ control:
         master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
         master_cfconfig         = ( ${CFROOT}/masterfiles/config )
         master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
+        moduledirectory         = ( ${CFROOT}/modules )
         workdir                 = ( ${CFROOT} )
         AddInstallable          = ( ldap_server )
    linux::
@@ -97,6 +98,7 @@ control:
         sysadm                  = ( "sysadm@\${domain}" )
         configroot              = ( ${CFROOT}/masterfiles/config )
         moduleroot              = ( ${CFROOT}/masterfiles/modules )
+        moduledirectory         = ( ${CFROOT}/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
         AddInstallable          = ( ldap_server )
