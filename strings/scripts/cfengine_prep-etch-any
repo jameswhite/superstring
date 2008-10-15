@@ -126,7 +126,7 @@ cd \${GITROOT}
 # order of the repos matter, the last will clobber the first... can we even order in LDAP?
 # /*FIXME*/ ldapsearch here for all repositories
 GITREPOS="git://github.com/fapestniegd/wcyd.git git://github.com/fapestniegd/superstring.git"
-for repo in `echo "\${GITREPOS}"`; do 
+for repo in \`echo "\${GITREPOS}"\`; do 
     repodir=\$(/usr/bin/basename  \${repo}|sed -e 's/\.git\$//g')
     if [ ! -d \${GITROOT}/\${repodir} ]; then
         /usr/bin/git clone \${repo} > /dev/null 2>&1
