@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# This simply defines any classes in /etc/localclasses
+# This simply defines any classes in /etc/cfengine/localclasses
 # It is used to bootstrap the first ldap server
 use strict;
 use FileHandle; 
