@@ -76,7 +76,7 @@ control:
         master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
         moduledirectory         = ( ${CFROOT}/modules )
         workdir                 = ( ${CFROOT} )
-        AddInstallable          = ( ldap_server )
+        AddInstallables         = ( ldap_server )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
@@ -101,7 +101,7 @@ control:
         moduledirectory         = ( ${CFROOT}/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        AddInstallable          = ( ldap_server )
+        AddInstallables         = ( ldap_server )
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
 editfiles:
@@ -113,8 +113,10 @@ groups:
         standalone_system            = ( all )
 
 import:
+shellcommands:
        ldap_server.debian::
-           linux/debian_openldap.cf    
+           "/bin/echo 'I need to install OpenLDAP'"
+
 EOCFA
 #################################################################################################
 
