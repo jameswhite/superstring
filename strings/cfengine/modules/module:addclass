@@ -10,7 +10,7 @@ if (defined $fh) {
     while(my $line=<$fh>){
         chomp($line);
         $line=~s/ //g;
-        print "+line\n";
+        print "+$line\n";
     }
     undef $fh;       # automatically closes the file
 }
