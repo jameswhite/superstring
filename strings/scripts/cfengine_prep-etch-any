@@ -3,6 +3,15 @@
 # Prepare the system for cfengine, set up host as policyhost
 # and as policy client for itself.
 #############################################################
+if [ -f /etc/redhat-release ];then
+    CFROOT=/var/cfengine
+elseif [ -f /etc/debian_version ];then
+    CFROOT=${CFROOT}
+else
+    echo "Cannot determine distribution or unsupported distribution";
+    exit -1;
+fi
+export CFROOT
 
 iface=$(/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|/usr/bin/head -1)
 ipaddr=$(/sbin/ifconfig ${iface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print $1}')
@@ -14,8 +23,8 @@ hostname ${HOST_NAME}
 
 [ "$(/bin/cat /etc/debian_version)" == "4.0" ] || exit
 /usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
-(cd /var/lib/cfengine2/ppkeys; cp localhost.pub root-127.0.0.1.pub)
-(cd /var/lib/cfengine2/ppkeys; cp localhost.pub root-${ipaddr}.pub)
+(cd ${CFROOT}/ppkeys; cp localhost.pub root-127.0.0.1.pub)
+(cd ${CFROOT}/ppkeys; cp localhost.pub root-${ipaddr}.pub)
 
 /bin/cat<<EOEDC>/etc/default/cfengine2
 # Cfengine2 defaults configuration  -*- sh -*-
@@ -34,14 +43,14 @@ chmod 644 /etc/default/cfengine2
 control:
         domain                          = ( ExecResult("/bin/dnsdomainname") )
         sysadm                          = ( "sysadm@\${domain}" )
-        workdir                         = ( "/var/lib/cfengine2" )
+        workdir                         = ( "${CFROOT}" )
         bindir                          = ( "/usr/sbin" )
         cfrunCommand                    = ( "\${bindir}/cfagent" )
         IfElapsed                       = ( 1 )
         AllowUsers                      = ( root )
         LogAllConnections               = ( on )
-        masterfiles                     = ( "/var/lib/cfengine2/masterfiles" )
-        hostfiles                       = ( "/var/lib/cfengine2/privatefiles" )
+        masterfiles                     = ( "${CFROOT}/masterfiles" )
+        hostfiles                       = ( "${CFROOT}/privatefiles" )
         MaxConnections = ( 50 )
         interface                       = ( ExecResult("/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1") )
         IPAddress                       = ( ExecResult("/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
@@ -60,8 +69,8 @@ control:
         actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinput          = ( /var/lib/cfengine2/masterfiles/inputs )
-        workdir                 = ( /var/lib/cfengine2 )
+        master_cfinput          = ( ${CFROOT}/masterfiles/inputs )
+        workdir                 = ( ${CFROOT} )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
@@ -82,8 +91,8 @@ control:
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
-        configroot              = ( /var/lib/cfengine2/masterfiles/config )
-        moduleroot              = ( /var/lib/cfengine2/masterfiles/modules )
+        configroot              = ( ${CFROOT}/masterfiles/config )
+        moduleroot              = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
 processes:
@@ -98,6 +107,37 @@ groups:
 
 import:
 EOCFA
+
+if [ ! -d /usr/local/sbin ]; then mkdir /usr/local/sbin;fi 
+/bin/cat<<EOG2M>/usr/local/sbin/git2masterfiles
+#!/bin/bash
+CFETC="/etc/cfengine"
+CFLIB="${CFROOT}"
+MASTERFILES="\${CFLIB}/masterfiles"
+GITROOT="\${CFLIB}/gitroot"
+export CFETC CFLIB MASTERFILES GITROOT
+
+if [ ! -d \${MASTERFILES} ]; then mkdir -p \${MASTERFILES}; fi
+if [ ! -d \${CFETC} ]; then mkdir -p \${CFETC}; fi
+if [ ! -d \${GITROOT} ]; then mkdir -p \${GITROOT};fi 
+
+cd \${GITROOT}
+
+# order of the repos matter, the last will clobber the first... can we even order in LDAP?
+# /*FIXME*/ ldapsearch here for all repositories
+GITREPOS="git://github.com/fapestniegd/wcyd.git git://github.com/fapestniegd/superstring.git"
+for repo in `echo "\${GITREPOS}"`; do 
+    repodir=\$(/usr/bin/basename  \${repo}|sed -e 's/\.git\$//g')
+    if [ ! -d \${GITROOT}/\${repodir} ]; then
+        /usr/bin/git clone \${repo} > /dev/null 2>&1
+    else 
+        (cd \${GITROOT}/\${repodir}; git pull > /dev/null 2>&1)
+    fi
+    if [ -d \${GITROOT}/\${repodir}/cfengine ];then
+        /usr/sbin/rsync -azPC \${GITROOT}/\${repodir}/cfengine/ \${MASTERFILES}/ > /dev/null 2>&1
+    fi
+done
+EOG2M
 
 /etc/init.d/cfengine2 stop
 /etc/init.d/cfengine2 start
