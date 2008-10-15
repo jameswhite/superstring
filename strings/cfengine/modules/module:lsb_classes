@@ -1,0 +1,24 @@
+#!/usr/bin/perl -w
+use strict;
+$|++;
+# ensure that our path env var has the proper paths we need
+$ENV{'PATH'} = "/bin:/usr/bin";
+my $lsb_release = "/bin/lsb_release";
+foreach my $_path (split(/:/,$ENV{'PATH'})){
+    if ( -x "$_path/lsb_release" ){
+        $lsb_release = "$_path/lsb_release";
+    }
+}
+# opening the file lsb-release is a lot faster!
+open(LSB,"</etc/lsb-release") or open(LSB,"$lsb_release -a|") or exit(0);
+while(<LSB>){
+    chomp();
+    if ( /codename/i ){
+        s/[[:alnum:]_-]+(:|=)[[:blank:]]*//i;
+        s/\./_/g;               # use _ for .'s
+        # remove all strange chars left
+        s/[[:blank:]]//g;     
+        s/[^[:alnum:]_-]//g;     
+        print "+".lc($_)."\n" if ( ! /^[[:blank:]]*$/);
+    }
+}
