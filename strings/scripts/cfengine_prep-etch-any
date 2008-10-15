@@ -108,8 +108,8 @@ groups:
         standalone_system            = ( all )
 
 import:
-#       standalone_system.linux::
-#           linux/init.cf
+       ldap_server.debian::
+           linux/debian_openldap.cf    
 EOCFA
 #################################################################################################
 
