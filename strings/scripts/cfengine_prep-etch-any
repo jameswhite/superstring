@@ -76,7 +76,7 @@ control:
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
 copy:
-    \$(master_cfinput)           dest=\$(workdir)/inputs
+    \$(master_cfinput)          dest=\$(workdir)/inputs
                                 r=inf
                                 mode=700
                                 type=binary
