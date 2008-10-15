@@ -70,18 +70,17 @@ control:
         actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinput          = ( ${CFROOT}/masterfiles/inputs )
+        master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
+        master_cfconfig         = ( ${CFROOT}/masterfiles/config )
+        master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
         workdir                 = ( ${CFROOT} )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
 copy:
-    \$(master_cfinput)          dest=\$(workdir)/inputs
-                                r=inf
-                                mode=700
-                                type=binary
-                                server=\$(policyhost)
-                                trustkey=true
+    \$(master_cfinput)   dest=\$(workdir)/inputs  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfconfig)  dest=\$(workdir)/config  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfmodules) dest=\$(workdir)/modules r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
 tidy:
         \$(workdir)/outputs pattern=* age=7
 EOCFU
