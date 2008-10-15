@@ -90,6 +90,7 @@ EOCFU
 #################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
+        prepm                   = ( PrepModule(module:lsb) PrepModule(module:allclass) )
         actionsequence          = ( 
                                     module:lsb_classes
                                     module:addclass 
