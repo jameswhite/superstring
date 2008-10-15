@@ -116,7 +116,7 @@ EOCFA
 # Fetch our public git repository 
 TMPDIR=$(mktemp -d /var/tmp/gitroot.XXXXX)
 (cd ${TMPDIR} ;git clone git://github.com/fapestniegd/superstring.git)
-rsync -avzPC ${TMPDIR}/strings/cfengine/ ${CFROOT}/masterfiles/ > /dev/null 2>&1
+rsync -avzPC --delete ${TMPDIR}/strings/cfengine/ ${CFROOT}/masterfiles/ > /dev/null 2>&1
 if [ -d "${TMPDIR}" -a "${TMPDIR}" != "/" ];then rm -fr ${TMPDIR}; fi
 
 # Fire up cfengine, and get things going
