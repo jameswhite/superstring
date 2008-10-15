@@ -69,8 +69,8 @@ control:
         actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinput          = ( \${CFROOT}/masterfiles/inputs )
-        workdir                 = ( \${CFROOT} )
+        master_cfinput          = ( ${CFROOT}/masterfiles/inputs )
+        workdir                 = ( ${CFROOT} )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
