@@ -102,7 +102,7 @@ control:
         moduledirectory         = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        AddInstallables         = ( etch ldap_server )
+        AddInstallable          = ( etch ldap_server )
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
 editfiles:
