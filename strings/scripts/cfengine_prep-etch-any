@@ -134,7 +134,7 @@ for repo in \`echo "\${GITREPOS}"\`; do
         (cd \${GITROOT}/\${repodir}; git pull > /dev/null 2>&1)
     fi
     if [ -d \${GITROOT}/\${repodir}/cfengine ];then
-        /usr/sbin/rsync -azPC \${GITROOT}/\${repodir}/cfengine/ \${MASTERFILES}/ > /dev/null 2>&1
+        /usr/sbin/rsync -azPC \${GITROOT}/\${repodir}/strings/cfengine/ \${MASTERFILES}/ > /dev/null 2>&1
     fi
 done
 EOG2M
