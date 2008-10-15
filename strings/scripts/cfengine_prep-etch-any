@@ -69,6 +69,7 @@ EOCFS
 # begin update.cf
 control:
         actionsequence          = ( 
+                                    module:lsb_classes
                                     module:addclass 
                                     copy tidy 
                                   )
@@ -79,7 +80,7 @@ control:
         master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
         moduledirectory         = ( ${CFROOT}/modules )
         workdir                 = ( ${CFROOT} )
-        AddInstallables         = ( ldap_server )
+        AddInstallables         = ( etch ldap_server )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
@@ -96,6 +97,7 @@ EOCFU
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
         actionsequence          = ( 
+                                    module:lsb_classes
                                     module:addclass 
                                     copy editfiles processes shellcommands 
                                   )
@@ -106,7 +108,7 @@ control:
         moduledirectory         = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        AddInstallables         = ( ldap_server )
+        AddInstallables         = ( etch ldap_server )
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
 editfiles:
@@ -121,6 +123,8 @@ import:
 shellcommands:
        ldap_server.debian::
            "/bin/echo 'I need to install OpenLDAP'"
+       etch::
+           "/bin/echo 'I am an etch system'"
 
 EOCFA
 #################################################################################################
