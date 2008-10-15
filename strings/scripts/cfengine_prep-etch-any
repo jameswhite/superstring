@@ -5,7 +5,7 @@
 #############################################################
 if [ -f /etc/redhat-release ];then
     CFROOT=/var/cfengine
-elseif [ -f /etc/debian_version ];then
+elseif [ -f /etc/debian_version ]
     CFROOT=${CFROOT}
 else
     echo "Cannot determine distribution or unsupported distribution";
