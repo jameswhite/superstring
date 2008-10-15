@@ -78,7 +78,7 @@ control:
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
 copy:
-    \$(master_cfinput)   dest=\$(workdir)/inputs  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfinputs)   dest=\$(workdir)/inputs  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
     \$(master_cfconfig)  dest=\$(workdir)/config  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
     \$(master_cfmodules) dest=\$(workdir)/modules r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
 tidy:
