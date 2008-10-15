@@ -68,7 +68,10 @@ EOCFS
 /bin/cat<<EOCFU>/etc/cfengine/update.conf
 # begin update.cf
 control:
-        actionsequence          = ( module:addclass copy tidy )
+        actionsequence          = ( 
+                                    module:addclass 
+                                    copy tidy 
+                                  )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
         master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
@@ -92,13 +95,15 @@ EOCFU
 #################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
-        actionsequence          = ( module:addclass copy editfiles processes shellcommands )
+        actionsequence          = ( 
+                                    module:addclass 
+                                    copy editfiles processes shellcommands 
+                                  )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
         configroot              = ( ${CFROOT}/masterfiles/config )
-        moduleroot              = ( ${CFROOT}/masterfiles/modules )
-        moduledirectory         = ( ${CFROOT}/modules )
+        moduledirectory         = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
         AddInstallables         = ( ldap_server )
