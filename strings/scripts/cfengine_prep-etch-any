@@ -111,8 +111,8 @@ editfiles:
         DeleteLinesContaining "cfexecd"
    }
 groups:
-        standalone_system            = ( all )
-        ldap_server                  = ( all )
+        standalone_system            = ( any )
+        ldap_server                  = ( freyr )
 
 import:
 shellcommands:
