@@ -5,8 +5,8 @@
 #############################################################
 if [ -f /etc/redhat-release ];then
     CFROOT=/var/cfengine
-elseif [ -f /etc/debian_version ]
-    CFROOT=${CFROOT}
+elif [ -f /etc/debian_version ];then
+    CFROOT="/var/lib/cfengine2"
 else
     echo "Cannot determine distribution or unsupported distribution";
     exit -1;
@@ -69,8 +69,8 @@ control:
         actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinput          = ( ${CFROOT}/masterfiles/inputs )
-        workdir                 = ( ${CFROOT} )
+        master_cfinput          = ( \${CFROOT}/masterfiles/inputs )
+        workdir                 = ( \${CFROOT} )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
@@ -138,7 +138,9 @@ for repo in `echo "\${GITREPOS}"`; do
     fi
 done
 EOG2M
+chmod 744 /usr/local/sbin/git2masterfiles
 
+/usr/local/sbin/git2masterfiles
 /etc/init.d/cfengine2 stop
 /etc/init.d/cfengine2 start
 /usr/sbin/cfexecd -F
