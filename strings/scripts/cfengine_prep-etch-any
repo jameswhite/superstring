@@ -112,6 +112,7 @@ editfiles:
    }
 groups:
         standalone_system            = ( all )
+        ldap_server                  = ( all )
 
 import:
 shellcommands:
