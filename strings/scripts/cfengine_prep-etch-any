@@ -117,8 +117,6 @@ import:
 shellcommands:
        ldap_server.debian::
            "/bin/echo 'I need to install OpenLDAP'"
-       etch::
-           "/bin/echo 'I am an etch system'"
 
 EOCFA
 #################################################################################################
