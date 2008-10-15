@@ -22,7 +22,7 @@ if [ -f /etc/redhat-release ];then
     # more stuff needed here
 elif [ -f /etc/debian_version ];then
     export CFROOT="/var/lib/cfengine2"
-    /usr/bin/apt-get update && /usr/bin/apt-get install cfengine2
+    dpkg -l | grep "^ii *cfengine2" || (/usr/bin/apt-get update && /usr/bin/apt-get install cfengine2)
     /etc/init.d/cfengine2 stop
     cp /etc/default/cfengine2 /etc/default/cfengine2.dist
     sed -e's/=0 *$/=1/' /etc/default/cfengine2.dist > /etc/default/cfengine2
