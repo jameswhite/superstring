@@ -89,7 +89,7 @@ EOCFU
 #################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
-        actionsequence          = ( module:addclass editfiles copy processes )
+        actionsequence          = ( copy editfiles module:addclass processes shellcommands )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
