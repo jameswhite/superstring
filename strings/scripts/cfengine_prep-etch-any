@@ -111,10 +111,13 @@ editfiles:
    }
 groups:
         standalone_system            = ( any )
+        # standalone systems are their own policy host
+        policy_host                  = ( standalone_system )
 
 import:
 shellcommands:
-       standalone_server|master_server::
+       # Policy Hosts need to get the latest state.
+       policy_host::
            "/usr/local/sbin/git2masterfiles"
 
 EOCFA
