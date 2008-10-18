@@ -111,12 +111,11 @@ editfiles:
    }
 groups:
         standalone_system            = ( any )
-        ldap_server                  = ( freyr )
 
 import:
 shellcommands:
-       ldap_server.debian::
-           "/bin/echo 'I need to install OpenLDAP'"
+       standalone_server|master_server::
+           "/usr/local/sbin/git2masterfiles"
 
 EOCFA
 #################################################################################################
