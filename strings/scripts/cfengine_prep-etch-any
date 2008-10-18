@@ -94,10 +94,9 @@ EOCFU
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
         prepm                   = ( PrepModule(module:addclass,"") )
-        actionsequence          = ( 
-                                    copy editfiles processes shellcommands 
-                                  )
+        actionsequence          = ( copy editfiles processes shellcommands )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
+        master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
         configroot              = ( ${CFROOT}/masterfiles/config )
