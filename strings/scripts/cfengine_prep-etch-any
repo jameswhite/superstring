@@ -117,7 +117,7 @@ groups:
         # standalone systems are their own policy host
         policy_host                  = ( standalone_system )
 copy:
-    standalone_system.etch::
+    standalone_system.debian::
         \$(master_cfinputs)/standalone.etch__update.conf  
             dest=\$(workdir)/inputs/update.conf  
             mode=700 type=binary server=\$(policyhost) trustkey=true
