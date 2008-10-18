@@ -103,6 +103,7 @@ control:
         moduledirectory         = ( ${CFROOT}/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
+        workdir                 = ( ${CFROOT} )
 
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
