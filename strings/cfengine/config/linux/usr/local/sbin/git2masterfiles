@@ -6,6 +6,7 @@ GITROOT="${CFLIB}/gitroot"
 export CFETC CFLIB MASTERFILES GITROOT
 
 if [ ! -d ${MASTERFILES} ]; then mkdir -p ${MASTERFILES}; fi
+if [ ! -d ${CFETC} ]; then mkdir -p ${CFETC}; fi
 if [ ! -d ${GITROOT} ]; then mkdir -p ${GITROOT};fi 
 
 cd ${GITROOT}
@@ -20,7 +21,7 @@ for repo in `echo "${GITREPOS}"`; do
     else 
         (cd ${GITROOT}/${repodir}; git pull > /dev/null 2>&1)
     fi
-    if [ -d ${GITROOT}/${repodir}/cfengine ];then
-        rsync -azPC ${GITROOT}/${repodir}/cfengine/ ${MASTERFILES}/ > /dev/null 2>&1
+    if [ -d ${GITROOT}/${repodir}/strings/cfengine ];then
+        /usr/bin/rsync -avzPC --delete ${GITROOT}/${repodir}/strings/cfengine/ ${MASTERFILES}/ 
     fi
 done
