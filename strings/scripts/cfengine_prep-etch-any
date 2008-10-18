@@ -38,7 +38,7 @@ fi
 
 # Write out the default config files for a standalone system
 #################################################################################################
-/bin/cat<<EOCFS>/etc/cfengine/cfservd
+/bin/cat<<EOCFS>/etc/cfengine/cfservd.conf
 control:
         domain                          = ( ExecResult("/bin/dnsdomainname") )
         sysadm                          = ( "sysadm@\${domain}" )
@@ -79,9 +79,12 @@ control:
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
 copy:
-    \$(master_cfinputs)   dest=\$(workdir)/inputs  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
-    \$(master_cfconfig)  dest=\$(workdir)/config  r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
-    \$(master_cfmodules) dest=\$(workdir)/modules r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfinputs)  dest=\$(workdir)/inputs  
+        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfconfig)  dest=\$(workdir)/config  
+        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
+    \$(master_cfmodules) dest=\$(workdir)/modules 
+        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
 tidy:
         \$(workdir)/outputs pattern=* age=7
 EOCFU
@@ -113,7 +116,17 @@ groups:
         standalone_system            = ( any )
         # standalone systems are their own policy host
         policy_host                  = ( standalone_system )
-
+copy:
+    standalone_system.etch::
+        \$(master_cfinputs)/standalone.etch__update.conf  
+            dest=\$(workdir)/inputs/update.conf  
+            mode=700 type=binary server=\$(policyhost) trustkey=true
+        \$(master_cfinputs)/standalone.etch__cfservd.conf
+            dest=\$(workdir)/inputs/cfservd.conf  
+            mode=700 type=binary server=\$(policyhost) trustkey=true
+        \$(master_cfinputs)/standalone.etch__cfagent.conf
+            dest=\$(workdir)/inputs/cfagent.conf
+            mode=700 type=binary server=\$(policyhost) trustkey=true
 import:
 shellcommands:
        # Policy Hosts need to get the latest state.
