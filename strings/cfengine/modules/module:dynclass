@@ -21,6 +21,7 @@ use Sys::Hostname::Long;
     $self->{'cfg'}->{'hostname'} = hostname();
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
+    $self->{'variables'}->{'cfengine_root'}="/var/lib/cfengine2";
     if($self->{'cfg'}->{'domain'} ne ""){ 
         return $self;
     }
@@ -81,11 +82,31 @@ use Net::DNS;
     return $self;
 }
 
+sub dumpclasses(){
+    my $self=shift;
+    foreach my $c (@{ $self->{'cfclasses'} }){
+        print "+",$c,"\n";
+    }
+    return $self;
+}
+
+sub dumpvariables(){
+    my $self=shift;
+    foreach my $k (keys(%{ $self->{'variables'} })){
+        print "=",$k,"=",$self->{'variables'}->{$k},"\n";
+    }
+    return $self;
+}
+
 1;
 
 my $ss = Superstring->new();
-$ss->get_srv_records() if $ss;
-print Data::Dumper->Dump([$ss]);
+if($ss){
+    $ss->get_srv_records();
+    $ss->dumpclasses();
+    $ss->dumpvariables();
+}
+#print Data::Dumper->Dump([$ss]);
 
 exit;
 # It is used to bootstrap the first ldap server
