@@ -22,6 +22,6 @@ for repo in `echo "${GITREPOS}"`; do
         (cd ${GITROOT}/${repodir}; git pull > /dev/null 2>&1)
     fi
     if [ -d ${GITROOT}/${repodir}/strings/cfengine ];then
-        /usr/bin/rsync -avzPC --delete ${GITROOT}/${repodir}/strings/cfengine/ ${MASTERFILES}/ 
+        /usr/bin/rsync -aqzPC --delete ${GITROOT}/${repodir}/strings/cfengine/ ${MASTERFILES}/ 
     fi
 done
