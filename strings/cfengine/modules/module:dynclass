@@ -31,7 +31,7 @@ use Sys::Hostname::Long;
 ###################################################
 # Determine from DNS if this host is an ldap_server
 ###################################################
-sub get_srv_records(){
+sub get_dns_records(){
 use Net::DNS;
     my $self = shift;
     my $res = Net::DNS::Resolver->new;
@@ -102,7 +102,8 @@ sub dumpvariables(){
 
 my $ss = Superstring->new();
 if($ss){
-    $ss->get_srv_records();
+    $ss->get_dns_records();
+    # $ss->get_ldap_
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
