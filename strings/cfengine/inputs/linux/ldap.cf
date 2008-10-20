@@ -1,5 +1,5 @@
 control:
-    actionsequence   = ( copy processes editfiles packages )
+    actionsequence   = ( packages copy processes editfiles )
  
 packages:
     ldap_server::
