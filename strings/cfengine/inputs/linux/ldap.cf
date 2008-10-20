@@ -1,0 +1,50 @@
+control:
+    actionsequence   = ( copy processes editfiles packages )
+ 
+packages:
+    ldap_server::
+        slapd            action=install
+ 
+    ldap_client::
+        nscd             action=install
+        libnss-ldap      action=install
+        libpam-ldap      action=install
+        ldap-utils       action=install
+ 
+editfiles:
+    ldap_server::
+        {   /etc/cfengine_installed
+            AppendIfNoSuchLine "LDAP_SERVER=1"
+        }
+    ldap_client::
+        {   /etc/cfengine_installed
+            AppendIfNoSuchLine "LDAP_CLIENT=1"
+        }
+copy:
+    ldap_server.debian::
+        $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+ 
+    ldap_client.debian::
+        $(configroot)/linux/etc/pam.d/debian_common-auth dest=/etc/pam.d/common-auth
+        server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian_common-account dest=/etc/pam.d/common-account
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian_common-password dest=/etc/pam.d/common-password
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian_common-session dest=/etc/pam.d/common-session
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/debian_nsswitch.conf dest=/etc/nsswitch.conf
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+ 
+processes:
+    ldap_server::
+      "slapd"      restart "/etc/init.d/slapd restart"
+ 
+    ldap_client::
+        "nscd"      restart "/etc/init.d/nscd restart"
+ 
