@@ -1,0 +1,13 @@
+# Cfengine2 defaults configuration  -*- sh -*-
+
+# Set variable to 1 to start the daemon; 0 otherwise.
+
+# Note that cfservd will only run if you have put a file into
+# /etc/cfengine/cfservd.conf, even if you set RUN_CFSERVD.
+
+RUN_CFSERVD=1
+RUN_CFEXECD=0
+RUN_CFENVD=0
+
+CFSERVD_ARGS=""
+#CFSERVD_ARGS="--multithread"

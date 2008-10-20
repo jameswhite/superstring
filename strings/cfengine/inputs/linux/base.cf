@@ -54,6 +54,9 @@ copy:
         $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
+        $(configroot)/linux/etc/apt/preferences dest=/etc/apt/preferences
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
         $(configroot)/linux/etc/profile dest=/etc/profile
             server=$(policyhost) type=sum owner=root group=root mode=0444
 

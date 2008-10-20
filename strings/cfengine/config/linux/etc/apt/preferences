@@ -1,0 +1,47 @@
+Package: *
+Pin: release a=etch-backports
+Pin-Priority: 200
+
+Package: libfuse2
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: libfuse-dev
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: fuse-utils
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: git-arch
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: git-core
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: git-cvs
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: git-email
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: git-daemon-run
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: gitk
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: gitweb
+Pin: release a=etch-backports
+Pin-Priority: 999
+
+Package: runit
+Pin: release a=etch-backports
+Pin-Priority: 999
