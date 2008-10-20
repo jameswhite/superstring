@@ -1,0 +1,29 @@
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+#/* Managed by cfengine */
+
+PATH="/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/sbin:/usr/local/sbin:/sbin"
+if [ ! -d ${HOME} ]; then
+    echo "I see you've never logged in before. Setting up \$HOME"
+    mkdir ${HOME} && cp /etc/skel/.* ${HOME}
+    cd ${HOME}
+fi
+
+if [ ! -d ${HOME} ]; then 
+    mkdir ${HOME} && cp /etc/skel/.* ${HOME}
+fi
+
+
+if [ "$BASH" ]; then
+  PS1='\u@\h:\w\$ '
+else
+  if [ "`id -u`" -eq 0 ]; then
+    PS1='# '
+  else
+    PS1='$ '
+  fi
+fi
+
+export PATH PS1
+
+umask 022

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Auto Clean APT Archives
+
+/usr/bin/apt-get autoclean
