@@ -13,7 +13,6 @@ grep $ipaddr /etc/hosts || echo "$ip `hostname --fqdn` `hostname`" >> /etc/hosts
 grep $hostname /etc/hostname || echo ${HOST_NAME} > /etc/hostname
 hostname ${HOST_NAME}
 
-
 # Then we install cfengine and set it up to run for either RH or Debian
 if [ -f /etc/redhat-release ];then
     export CFROOT=/var/cfengine
@@ -36,100 +35,12 @@ fi
 (cd ${CFROOT}/ppkeys; cp localhost.pub root-127.0.0.1.pub)
 (cd ${CFROOT}/ppkeys; cp localhost.pub root-${ipaddr}.pub)
 
-# Write out the default config files for a standalone system
-#################################################################################################
-/bin/cat<<EOCFS>/etc/cfengine/cfservd.conf
-control:
-        prepmodule                      = ( PrepModule(module:dynclass,"") )
-        domain                          = ( ExecResult("/bin/dnsdomainname") )
-        sysadm                          = ( "sysadm@\$(domain)" )
-        workdir                         = ( "${CFROOT}" )
-        bindir                          = ( "/usr/sbin" )
-        cfrunCommand                    = ( "\$(bindir)/cfagent" )
-        IfElapsed                       = ( 1 )
-        AllowUsers                      = ( root )
-        LogAllConnections               = ( on )
-        masterfiles                     = ( "$(cfengine_root)/masterfiles" )
-        hostfiles                       = ( "$(cfengine_root)/privatefiles" )
-        MaxConnections = ( 50 )
-        interface                       = ( ExecResult("/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1") )
-        IPAddress                       = ( ExecResult("/bin/ifconfig \$(interface)|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
-        AllowConnectionsFrom            = ( \$(IPAddress)/32 )
-admit:
-        any::
-                \$(cfrunCommand)                                         *
-                \$(masterfiles)/config                                   *
-                \$(masterfiles)/inputs                                   *
-                \$(masterfiles)/modules            
-EOCFS
-#################################################################################################
-
-#################################################################################################
-/bin/cat<<EOCFU>/etc/cfengine/update.conf
-# begin update.cf
-control:
-        prepmodule              = ( PrepModule(module:dynclass,"") )
-        actionsequence          = ( copy tidy )
-        domain                  = ( ExecResult("/bin/dnsdomainname") )
-        policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinputs         = ( \$(cfengine_root)/masterfiles/inputs )
-        master_cfconfig         = ( \$(cfengine_root)/masterfiles/config )
-        master_cfmodules        = ( \$(cfengine_root)/masterfiles/modules )
-        moduledirectory         = ( \$(cfengine_root)/modules )
-        workdir                 = ( \$(cfengine_root) )
-   linux::
-        cf_install_dir  = ( /usr/sbin )
-        SplayTime       = ( 1 )
-copy:
-    \$(master_cfinputs)  dest=\$(workdir)/inputs  
-        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
-    \$(master_cfconfig)  dest=\$(workdir)/config  
-        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
-    \$(master_cfmodules) dest=\$(workdir)/modules 
-        r=inf mode=700 type=binary server=\$(policyhost) trustkey=true
-tidy:
-        \$(workdir)/outputs pattern=* age=7
-EOCFU
-#################################################################################################
-
-#################################################################################################
-/bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
-control:
-        prepm                   = ( PrepModule(module:dynclass,"") )
-        actionsequence          = ( copy editfiles processes shellcommands )
-        domain                  = ( ExecResult("/bin/dnsdomainname") )
-        master_cfinputs         = ( \$(cfengine_root)/masterfiles/inputs )
-        smtpserver              = ( localhost )
-        sysadm                  = ( "sysadm@\${domain}" )
-        configroot              = ( \$(cfengine_root)/masterfiles/config )
-        moduledirectory         = ( \$(cfengine_root)/masterfiles/modules )
-        ChecksumUpdates         = ( on )
-        policyhost              = ( ExecResult("/bin/hostname -f") )
-        workdir                 = ( \$(cfengine_root) )
-
-processes:
-        "cfservd" restart "/usr/sbin/cfservd"
-editfiles:
-   linux::
-   { /etc/crontab
-        DeleteLinesContaining "cfexecd"
-   }
-
-groups:
-copy:
-import:
-shellcommands:
-       # Policy Hosts need to get the latest state.
-       policy_host::
-           "/usr/local/sbin/git2masterfiles"
-
-EOCFA
-#################################################################################################
-
 # Fetch our public git repository 
 TMPDIR=$(mktemp -d /var/tmp/gitroot.XXXXX)
 (cd ${TMPDIR} ;git clone git://github.com/fapestniegd/superstring.git)
 rsync -avzPC --delete ${TMPDIR}/superstring/strings/cfengine/ ${CFROOT}/masterfiles/ > /dev/null 2>&1
+/usr/bin/install -m 0744 ${CFROOT}/masterfiles/inputs/{update,cfservd,cfagent}.conf ${CFROOT}/inputs
+/usr/bin/install -m 0744 ${CFROOT}/masterfiles/modules/module\:dynclass ${CFROOT}/modules
 if [ -d "${TMPDIR}" -a "${TMPDIR}" != "/" ];then rm -fr ${TMPDIR}; fi
 
 # Fire up cfengine, and get things going
