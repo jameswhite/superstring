@@ -40,20 +40,21 @@ fi
 #################################################################################################
 /bin/cat<<EOCFS>/etc/cfengine/cfservd.conf
 control:
+        prepmodule                      = ( PrepModule(module:dynclass,"") )
         domain                          = ( ExecResult("/bin/dnsdomainname") )
-        sysadm                          = ( "sysadm@\${domain}" )
+        sysadm                          = ( "sysadm@\$(domain)" )
         workdir                         = ( "${CFROOT}" )
         bindir                          = ( "/usr/sbin" )
-        cfrunCommand                    = ( "\${bindir}/cfagent" )
+        cfrunCommand                    = ( "\$(bindir)/cfagent" )
         IfElapsed                       = ( 1 )
         AllowUsers                      = ( root )
         LogAllConnections               = ( on )
-        masterfiles                     = ( "${CFROOT}/masterfiles" )
-        hostfiles                       = ( "${CFROOT}/privatefiles" )
+        masterfiles                     = ( "$(cfengine_root)/masterfiles" )
+        hostfiles                       = ( "$(cfengine_root)/privatefiles" )
         MaxConnections = ( 50 )
         interface                       = ( ExecResult("/sbin/route -n|/usr/bin/awk -v e='0.0.0.0' '{if((\$1==e)&&(\$2!=e)){print \$NF;}}'|/usr/bin/head -1") )
-        IPAddress                       = ( ExecResult("/bin/ifconfig \${interface}|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
-        AllowConnectionsFrom            = ( \${IPAddress}/32 )
+        IPAddress                       = ( ExecResult("/bin/ifconfig \$(interface)|/bin/grep 'inet addr:'|/usr/bin/cut -d: -f2|/usr/bin/awk '{ print \$1}'") )
+        AllowConnectionsFrom            = ( \$(IPAddress)/32 )
 admit:
         any::
                 \$(cfrunCommand)                                         *
@@ -67,14 +68,15 @@ EOCFS
 /bin/cat<<EOCFU>/etc/cfengine/update.conf
 # begin update.cf
 control:
+        prepmodule              = ( PrepModule(module:dynclass,"") )
         actionsequence          = ( copy tidy )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
-        master_cfconfig         = ( ${CFROOT}/masterfiles/config )
-        master_cfmodules        = ( ${CFROOT}/masterfiles/modules )
-        moduledirectory         = ( ${CFROOT}/modules )
-        workdir                 = ( ${CFROOT} )
+        master_cfinputs         = ( \$(cfengine_root)/masterfiles/inputs )
+        master_cfconfig         = ( \$(cfengine_root)/masterfiles/config )
+        master_cfmodules        = ( \$(cfengine_root)/masterfiles/modules )
+        moduledirectory         = ( \$(cfengine_root)/modules )
+        workdir                 = ( \$(cfengine_root) )
    linux::
         cf_install_dir  = ( /usr/sbin )
         SplayTime       = ( 1 )
@@ -93,17 +95,17 @@ EOCFU
 #################################################################################################
 /bin/cat<<EOCFA>/etc/cfengine/cfagent.conf
 control:
-        prepm                   = ( PrepModule(module:addclass,"") )
+        prepm                   = ( PrepModule(module:dynclass,"") )
         actionsequence          = ( copy editfiles processes shellcommands )
         domain                  = ( ExecResult("/bin/dnsdomainname") )
-        master_cfinputs         = ( ${CFROOT}/masterfiles/inputs )
+        master_cfinputs         = ( \$(cfengine_root)/masterfiles/inputs )
         smtpserver              = ( localhost )
         sysadm                  = ( "sysadm@\${domain}" )
-        configroot              = ( ${CFROOT}/masterfiles/config )
-        moduledirectory         = ( ${CFROOT}/masterfiles/modules )
+        configroot              = ( \$(cfengine_root)/masterfiles/config )
+        moduledirectory         = ( \$(cfengine_root)/masterfiles/modules )
         ChecksumUpdates         = ( on )
         policyhost              = ( ExecResult("/bin/hostname -f") )
-        workdir                 = ( ${CFROOT} )
+        workdir                 = ( \$(cfengine_root) )
 
 processes:
         "cfservd" restart "/usr/sbin/cfservd"
@@ -112,21 +114,9 @@ editfiles:
    { /etc/crontab
         DeleteLinesContaining "cfexecd"
    }
+
 groups:
-        standalone_system            = ( any )
-        # standalone systems are their own policy host
-        policy_host                  = ( standalone_system )
 copy:
-    !standalone_system::
-        \$(master_cfinputs)/standalone.etch__update.conf  
-            dest=\$(workdir)/inputs/update.conf  
-            mode=700 type=binary server=\$(policyhost) trustkey=true
-        \$(master_cfinputs)/standalone.etch__cfservd.conf
-            dest=\$(workdir)/inputs/cfservd.conf  
-            mode=700 type=binary server=\$(policyhost) trustkey=true
-        \$(master_cfinputs)/standalone.etch__cfagent.conf
-            dest=\$(workdir)/inputs/cfagent.conf
-            mode=700 type=binary server=\$(policyhost) trustkey=true
 import:
 shellcommands:
        # Policy Hosts need to get the latest state.
