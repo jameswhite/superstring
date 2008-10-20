@@ -1,0 +1,105 @@
+control:
+    actionsequence            = ( packages editfiles copy processes files tidy shellcommands )
+    debian::
+        DefaultPkgMgr         = ( dpkg )
+        pkgmgr                = ( dpkg )
+        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
+        AddInstallable        = ( update_apt )
+
+files:
+    debian:: 
+        /etc/cfengine_installed mode=0644 owner=root group=root act=touch
+        /home mode=1777 owner=root group=root act=fixall
+
+editfiles:
+    debian::
+        { /etc/debconf.conf
+            BeginGroupIfNoLineMatching "^Frontend.*"
+                LocateLineMatching "^Templates.*"
+                InsertLine "Frontend: noninteractive"
+                InsertLine "Priority: critical"
+            EndGroup
+        }
+
+        ## Add Opt User Addition
+        { /etc/passwd
+            BeginGroupIfNoLineContaining "opt:x:500:500:Opt User Account,,,:/home/opt:/bin/bash"
+                DeleteLinesStarting "opt:"
+                Append "opt:x:500:500:Opt User Account,,,:/home/opt:/bin/bash"
+            EndGroup
+        }
+        { /etc/group
+            BeginGroupIfNoLineContaining "opt:x:500:"
+                DeleteLinesStarting "opt:"
+                Append "opt:x:500:"
+            EndGroup
+        }
+        { /etc/shadow
+            BeginGroupIfNoLineContaining "opt:SDhSlWtuuiarU:13977:0:99999:7:::"
+                DeleteLinesStarting "opt:"
+                Append "opt:SDhSlWtuuiarU:13977:0:99999:7:::"
+            EndGroup
+        }
+        ## End Opt User Addition
+
+copy:
+    linux::
+        $(configroot)/linux/etc/sudoers dest=/etc/sudoers
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+
+    debian::
+        $(configroot)/linux/etc/default/cfengine2 dest=/etc/default/cfengine2
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+
+        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+        $(configroot)/linux/etc/profile dest=/etc/profile
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/ssh/moduli dest=/etc/ssh/moduli
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/issue.net dest=/etc/issue.net
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/ssl/websages.cer dest=/etc/ssl/websages.cer
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/cron.weekly/apt-clean dest=/etc/cron.weekly/apt-clean
+            server=$(policyhost) type=sum owner=root group=root mode=0755
+
+packages:
+    debian::
+        less                   action=install
+        autodir                action=install
+        file                   action=install
+        screen                 action=install
+        ntp-simple             action=install
+        ntpdate                action=install
+        sudo                   action=install
+        strace                 action=install
+        syslog-ng              action=install
+        subversion             action=install
+        vim                    action=install
+        iptables               action=install
+        rsync                  action=install
+        ca-certificates        action=install
+        cron-apt               action=install
+
+processes:
+    debian::
+        "nscd"            restart "/etc/init.d/nscd restart"
+        "cron"            restart "/etc/init.d/cron restart"
+
+tidy:
+    any::
+        /                 pat=*.cfsaved    r=inf    age=7
+
+    control_node::
+        /var/lib/cfengine2/inputs    pat=.#*        r=inf    age=1
+
+shellcommands:
+     update_apt::
+        "/usr/bin/apt-get update"
+

@@ -22,6 +22,7 @@ use Sys::Hostname::Long;
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
     $self->{'variables'}->{'cfengine_root'}="/var/lib/cfengine2";
+    push(@{ $self->{'classes'} },'base');
     if($self->{'cfg'}->{'domain'} ne ""){ 
         return $self;
     }
