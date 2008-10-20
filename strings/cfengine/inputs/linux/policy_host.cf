@@ -3,7 +3,7 @@ control:
 
 copy:
     policy_host.linux::
-        $(master_cfinputs)/linux/usr/local/sbin/git2masterfiles  dest=/usr/local/sbin/git2masterfiles
+        $(configroot)/linux/usr/local/sbin/git2masterfiles  dest=/usr/local/sbin/git2masterfiles
          mode=744 type=binary server=$(policyhost) trustkey=true
 
 shellcommands:
