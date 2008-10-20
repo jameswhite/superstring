@@ -38,7 +38,7 @@ use Net::DNS;
     if ($query){
         foreach my $rr (grep { $_->type eq 'SRV' } $query->answer) {
             push(@{ $self->{'cfg'}->{'ldap_servers'} },$rr->target);
-            if($rr->target eq $self->{'cfg'}->{'hostname'}){
+            if($rr->target eq $self->{'cfg'}->{'fqdn'}){
                 push(@{ $self->{'cfclasses'} },"ldap_server");
             }
         }
@@ -59,7 +59,7 @@ use Net::DNS;
                     if ($ptrquery){
                         foreach my $rrp (grep { $_->type eq 'PTR' } $ptrquery->answer) {
                             push(@{ $self->{'cfg'}->{'dns'}->{'ptr'}->{$rra->address} },$rrp->ptrdname);
-                            if($rrp->ptrdname eq $self->{'cfg'}->{'hostname'}){
+                            if($rrp->ptrdname eq $self->{'cfg'}->{'fqdn'}){
                                 push(@{ $self->{'cfclasses'} },"bind9_server");
                             }
                         }
@@ -71,7 +71,7 @@ use Net::DNS;
                 warn "query failed: ", $res2->errorstring, "\n";
             }
             push(@{ $self->{'cfg'}->{'dns'}->{'ns'} },$rr->nsdname);
-            if($rr->nsdname eq $self->{'cfg'}->{'hostname'}){
+            if($rr->nsdname eq $self->{'cfg'}->{'fqdn'}){
                 push(@{ $self->{'cfclasses'} },"bind9_server");
             }
         }
