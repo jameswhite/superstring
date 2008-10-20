@@ -28,9 +28,21 @@ use Sys::Hostname::Long;
     }
     return undef;
 }
+###################################################
+# Attempt to contact all the LDAP Servers 
+#     and get this hosts LDAP record
+###################################################
+sub get_ldap_record(){
+use Net::LDAP;
+    my $self=shift;
+    # foreach 
+ 
+    return $self;
+}
  
 ###################################################
-# Determine from DNS if this host is an ldap_server
+# Get all the DNS records that could determine
+#     what this host is supposed to be
 ###################################################
 sub get_dns_records(){
 use Net::DNS;
@@ -45,6 +57,7 @@ use Net::DNS;
             }
         }
     }else{
+          push(@{ $self->{'cfclasses'} },'dns_errors');
           warn "query failed: ", $res->errorstring, "\n";
     }
     my $query = $res->query($self->{'cfg'}->{'domain'}, "NS");
@@ -66,10 +79,12 @@ use Net::DNS;
                             }
                         }
                     }else{
+                        push(@{ $self->{'cfclasses'} },'dns_errors');
                         warn "query failed: ", $res3->errorstring, "\n";
                     }
                 }
             }else{
+                push(@{ $self->{'cfclasses'} },'dns_errors');
                 warn "query failed: ", $res2->errorstring, "\n";
             }
             push(@{ $self->{'cfg'}->{'dns'}->{'ns'} },$rr->nsdname);
