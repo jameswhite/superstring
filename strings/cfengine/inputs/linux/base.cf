@@ -89,6 +89,7 @@ packages:
         rsync                  action=install
         ca-certificates        action=install
         cron-apt               action=install
+        libnet-ldap-perl       action=install 
 
 processes:
     debian::

@@ -119,23 +119,8 @@ sub dumpvariables(){
 my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
-    # $ss->get_ldap_
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
 #print Data::Dumper->Dump([$ss]);
-
 exit;
-# It is used to bootstrap the first ldap server
-use FileHandle; 
-exit unless(-f "/etc/cfengine/localclasses");
-
-my $fh = new FileHandle "/etc/cfengine/localclasses", "r";
-if (defined $fh) {
-    while(my $line=<$fh>){
-        chomp($line);
-        $line=~s/ //g;
-        print "+$line\n";
-    }
-    undef $fh;       # automatically closes the file
-}

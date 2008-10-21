@@ -1,0 +1,720 @@
+#!/usr/bin/perl
+# --------------------------------------------------------------------------
+# Copyright (C) 2000-2002 TJ Saunders <tj@castaglia.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+#
+#  $Id: cert-tool,v 1.11 2002/12/06 23:20:58 tj Exp tj $
+# --------------------------------------------------------------------------
+
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Long;
+
+chomp(my $date = `date +%Y-%m-%d`);
+my $program = basename($0);
+my $quiet = 0;
+my $verbose = 0;
+
+# Defaults
+my $openssl = '/usr/bin/openssl';
+my $c_rehash = '/usr/bin/c_rehash';
+
+my $cert_tool_home = '/var/lib/cert-tool';
+my $cert_tool_key_len = 1024;
+my $cert_tool_days_valid = 365;
+my ($config_path, $index_path, $rand_path, $serial_path);
+
+my %opts = ();
+GetOptions(\%opts, 'combined', 'common-name=s', 'create-ca=s', 'create-cert=s',
+  'days-valid=i', 'help', 'key-cipher=s', 'key-length=i',
+  'signing-ca=s', 'signing-key=s', 'quiet', 'verbose',
+  'verify-cert=s', 'verifying-ca=s', 'verifying-key=s', 'with-csr=s');
+
+usage() if exists($opts{'help'});
+
+# Make sure we're running as root.
+#die "$program: must be run with root privileges\n" unless ($> == 0);
+
+$cert_tool_key_len = $opts{'key-length'} if exists($opts{'key-length'});
+
+if (exists($opts{'quiet'})) {
+  $quiet = 1;
+}
+
+if (exists($opts{'verbose'})) {
+  $quiet = 1;
+  $verbose = 1;
+}
+
+# For other operations, the signing CA and key must be specified.
+unless (exists($opts{'signing-ca'})) {
+  die "$program: missing required parameter: --signing-ca\n";
+}
+
+unless ($opts{'signing-ca'} eq "self" || exists($opts{'signing-key'})) {
+  die "$program: missing required parameter: --signing-key\n";
+}
+
+# Prepare the tool for operation.
+prepare_tool();
+
+if (exists($opts{'create-ca'})) {
+  my $key_file = "$opts{'create-ca'}.key.pem";
+  my $cert_file = "$opts{'create-ca'}.cert.pem";
+  my $csr_file = "$opts{'create-ca'}.csr";
+
+  generate_key(
+    'key_file' => $key_file,
+    'rand_file' => $rand_path,
+  );
+
+  if ($opts{'signing-ca'} eq "self") {
+    generate_root_CA_cert(
+      'name' => $opts{'create-ca'},
+      'cert_file' => $cert_file,
+      'key_file' => $key_file,
+    );
+    chmod 0400, $cert_file, $key_file;
+
+    if (exists($opts{'combined'})) {
+      my $output_file = "$opts{'create-ca'}.pem";
+      concatenate_files($cert_file, $key_file, $output_file);
+      chmod 0400, $output_file;
+    }
+    
+  } else {
+
+    unless (-r $opts{'signing-ca'}) {
+      die "$program: error: unable to read CA file $opts{'signing-ca'}\n";
+    }
+
+    unless (-r $opts{'signing-key'}) {
+      die "$program: error: unable to read CA key $opts{'signing-key'}\n";
+    }
+
+    # Generate a CSR, unless one was explicitly given.
+    unless (exists($opts{'with-csr'})) {
+      generate_CSR(
+        'name' => $opts{'create-ca'},
+        'key_file' => $key_file,
+        'csr_file' => $csr_file,
+      );
+
+    } else {
+      unless (-r $opts{'with-csr'}) {
+        die "$program: error: unable to read $opts{'with-csr'}\n";
+      }
+      $csr_file = $opts{'with-csr'};
+    }
+
+    sign_CA_CSR(
+      'csr_file' => $csr_file,
+      'cert_file' => $cert_file,
+      'ca_cert_file' => $opts{'signing-ca'},
+      'ca_key_file' => $opts{'signing-key'},
+    );
+    chmod 0400, $cert_file, $key_file;
+
+    if (exists($opts{'combined'})) {
+      my $output_file = "$opts{'create-ca'}.pem";
+      concatenate_files($cert_file, $key_file, $output_file);
+      chmod 0400, $output_file;
+    }
+
+    unlink($csr_file);
+  }
+}
+
+if (exists($opts{'create-cert'})) {
+  my $key_file = "$opts{'create-cert'}.key.pem";
+  my $cert_file = "$opts{'create-cert'}.cert.pem";
+  my $csr_file = "$opts{'create-cert'}.csr";
+
+  # A signing CA of "self" is not allowed for certificate creation.
+  if ($opts{'signing-ca'} eq "self") {
+    die "$program: error: a valid CA must be specified when creating a new certificate\n";
+  }
+
+  unless (-r $opts{'signing-ca'}) {
+    die "$program: error: unable to read CA file $opts{'signing-ca'}\n";
+  }
+
+  unless (-r $opts{'signing-key'}) {
+    die "$program: error: unable to read CA key $opts{'signing-key'}\n";
+  }
+
+  # Generate a key (only RSA keys are generated for now).
+  generate_key(
+    'key_file' => $key_file,
+    'rand_file' => $rand_path,
+  );
+
+  # Generate a CSR, unless one was explicitly given.
+  unless (exists($opts{'with-csr'})) {
+
+    # Prompt for the values for some X509v3 subjectAltName attributes.
+    print STDOUT "$program: X509v3 subjectAltName dNSName: ";
+    chomp($ENV{'CERT_TOOL_ALT_DNS'} = <STDIN>);
+
+    print STDOUT "$program: X509v3 subjectAltName emailAddress: ";
+    chomp($ENV{'CERT_TOOL_ALT_EMAIL'} = <STDIN>);
+
+    print STDOUT "$program: X509v3 subjectAltName iPAddress: ";
+    chomp($ENV{'CERT_TOOL_ALT_IP'} = <STDIN>);
+
+    print STDOUT "$program: X509v3 subjectAltName uniformResourceIdentifier: ";
+    chomp($ENV{'CERT_TOOL_ALT_URI'} = <STDIN>);
+
+    generate_CSR(
+      'name' => $opts{'create-cert'},
+      'key_file' => $key_file,
+      'csr_file' => $csr_file,
+    );
+
+  } else {
+    unless (-r $opts{'with-csr'}) {
+      die "$program: error: unable to read $csr_file\n";
+    }
+    $csr_file = $opts{'with-csr'};
+  }
+
+  # Sign the CSR, turning it into a certficate.
+  sign_CSR(
+    'cert_file' => $cert_file,
+    'csr_file' => $csr_file,
+    'ca_cert_file' => $opts{'signing-ca'},
+    'ca_key_file' => $opts{'signing-key'},
+  );
+  chmod 0400, $cert_file, $key_file;
+
+  if (exists($opts{'combined'})) {
+    my $output_file = "$opts{'create-cert'}.pem";
+    concatenate_files($cert_file, $key_file, $output_file);
+    chmod 0400, $output_file;
+  }
+
+  unlink($csr_file);
+}
+
+exit 0;
+
+# --------------------------------------------------------------------------
+sub concatenate_files {
+  my ($cert_file, $key_file, $output_file) = @_;
+
+  # Combine the key and cert into one file, cert first.
+  if (-f $cert_file && -f $key_file) {
+    `cat $cert_file $key_file > $output_file`;
+
+    # No need for the key and cert files now.
+    unlink($cert_file, $key_file);
+
+  } else {
+    die "$program: error: missing cert or key file to combine\n";
+  }
+}
+
+# --------------------------------------------------------------------------
+sub execute_command {
+  my ($command) = @_;
+
+  if ($verbose) {
+    $command = "$openssl $command";
+    print STDOUT "\n$program: executing the following command:\n  $command\n\n";
+
+  } else {
+
+    # Note: OpenSSL uses stderr for printing out messages (why??).  This means
+    # that in the case of generating a passphrase protected key, stderr must
+    # not be redirected, else the user will never see the prompt for the
+    # passphrase.  How annoying.
+
+    unless (exists($opts{'key-cipher'})) {
+      $command = "$openssl >/dev/null 2>&1 $command";
+
+    } else {
+      $command = "$openssl >/dev/null $command";
+    }
+  }
+
+  my $res = system($command);
+
+  if ($res == -1) {
+    die "$program: error with system(): $!\n";
+
+  } elsif ($res != 0) {
+    die "$program: error executing openssl command\n";
+  }
+}
+
+# --------------------------------------------------------------------------
+sub generate_CSR {
+  my %args = @_;
+
+  my $key_file = $args{'key_file'};
+  my $output_file = $args{'csr_file'};
+
+  # Use the environment to pass in the custom/arbitrary name of the cert
+  # being required as the commonName.  This name should be something like the
+  # hostname or IP address of the requesting entity.
+  $ENV{'CERT_TOOL_COMMON_NAME'} = $args{'name'};
+  $ENV{'CERT_TOOL_COMMON_NAME'} = $opts{'common-name'} if
+    defined($opts{'common-name'});
+
+  # Generate the new CSR.
+  print STDOUT "$program: generating CSR\n" if $quiet;
+  execute_command("req -config $config_path -new -key $key_file -out $output_file", 0);
+}
+
+# --------------------------------------------------------------------------
+sub generate_key {
+  my %args = @_;
+  my $output_file = $args{'key_file'};
+  my $rand_file = $args{'rand_file'};
+
+  my $cipher_opt = "";
+  my $redirect = 0;
+
+  if (exists($opts{'key-cipher'})) {
+    $redirect = 1;
+
+    if ($opts{'key-cipher'} eq "des") {
+      $cipher_opt = "-des";
+
+    } elsif ($opts{'key-cipher'} eq "des3") {
+      $cipher_opt = "-des3";
+
+    } elsif ($opts{'key-cipher'} eq "idea") {
+      $cipher_opt = "-idea";
+
+    } else {
+      die "$program: unsupported private key cipher option: $opts{'key-cipher'}\n";
+    }
+  }
+
+  print STDOUT "$program: generating RSA key file\n" if $quiet;
+  execute_command("genrsa -rand $rand_file $cipher_opt -out $output_file $cert_tool_key_len");
+}
+
+# --------------------------------------------------------------------------
+sub generate_root_CA_cert {
+  my %args = @_;
+
+  # Note: by default, make the root CA good for two years.
+  my $days = 730;
+
+  my $cert_file = $args{'cert_file'};
+  my $key_file = $args{'key_file'};
+
+  # Use the environment to pass in the custom/arbitrary name of the cert
+  # being required as the commonName.  This name should be something like the
+  # hostname or IP address of the requesting entity.
+  $ENV{'CERT_TOOL_COMMON_NAME'} = $args{'name'};
+  $ENV{'CERT_TOOL_COMMON_NAME'} = $opts{'common-name'} if
+    defined($opts{'common-name'});
+
+  # Note: this hack allows for the twiddling of the serial number of the
+  # generated self-signed cert.  This means that openssl-0.9.7-beta2 or
+  # later must be used, as that is when the -set_serial option was introduced.
+  $ENV{'CERT_TOOL_ROOT_CA_SERIAL'} = '0x0' unless
+    exists($ENV{'CERT_TOOL_ROOT_CA_SERIAL'});
+
+  # The -x509 option directs req to generate a self-signed CA certificate.
+  execute_command("req -config $config_path -new -x509 -days $days -key $key_file -set_serial $ENV{'CERT_TOOL_ROOT_CA_SERIAL'} -out $cert_file", 0);
+}
+
+# --------------------------------------------------------------------------
+sub prepare_config_file {
+  $config_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.conf";
+
+  print STDOUT "$program: writing '$config_path'\n" if $quiet;
+
+  open(CONFIG, "> $config_path") or
+    die "$program: unable to open $config_path: $!\n";
+  while (my $line = <DATA>) {
+    $line =~ s/%program%/$program/;
+    $line =~ s/%date%/$date/;
+
+    print CONFIG $line;
+  }
+  close(CONFIG);
+  chmod 0600, $config_path;
+}
+
+# --------------------------------------------------------------------------
+sub prepare_environ {
+  $ENV{'CERT_TOOL_HOME'} = $cert_tool_home
+    unless exists($ENV{'CERT_TOOL_HOME'});
+
+  $ENV{'CERT_TOOL_DAYS_VALID'} = $cert_tool_days_valid;
+  $ENV{'CERT_TOOL_DAYS_VALID'} = $opts{'days-valid'}
+    if exists($opts{'days-valid'});
+
+  $ENV{'CERT_TOOL_KEY_LEN'} = $cert_tool_key_len;
+  $ENV{'CERT_TOOL_KEY_LEN'} = $opts{'key-length'}
+    if exists($opts{'key-length'});
+
+  # Need to fill in default values for some X509v3 subjectAltName attributes.
+  $ENV{'CERT_TOOL_ALT_DNS'} = "";
+  $ENV{'CERT_TOOL_ALT_EMAIL'} = "";
+  $ENV{'CERT_TOOL_ALT_IP'} = "";
+  $ENV{'CERT_TOOL_ALT_URI'} = "";
+}
+
+# --------------------------------------------------------------------------
+sub prepare_index_file {
+  $index_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.index";
+
+  unless (-f $index_path) { 
+    print STDOUT "$program: writing '$index_path'\n" if $quiet;
+    open(INDEX, "> $index_path") or 
+      die "$program: unable to open $index_path: $!\n";
+    close(INDEX);
+  }
+}
+
+# --------------------------------------------------------------------------
+sub prepare_rand_file {
+  my $have_file = 0;
+  $rand_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.rand";
+
+  if (-f $rand_path) {
+    my $current_bytes = (stat $rand_path)[7];
+    $have_file = 1 if ($current_bytes >= $cert_tool_key_len);
+  }
+
+  unless ($have_file) {
+    print STDOUT "$program: writing '$rand_path'\n" if $quiet;
+    execute_command("rand -out $rand_path $cert_tool_key_len", 0);
+  }
+}
+
+# --------------------------------------------------------------------------
+sub prepare_serial_file {
+  $serial_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.serial";
+
+  unless (-f $serial_path) {
+    print STDOUT "$program: writing '$serial_path'\n" if $quiet;
+    open(SERIAL, "> $serial_path") or
+      die "$program: unable to open $serial_path: $!\n";
+
+    # Start the serial number at 1.
+    print SERIAL "01\n";
+    close(SERIAL);
+  }
+}
+
+# --------------------------------------------------------------------------
+sub prepare_tool {
+  my %args = @_;
+  $config_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.conf";
+
+  # Prepare the environment.
+  prepare_environ();
+
+  # Create the home directory.
+  unless (-d $ENV{'CERT_TOOL_HOME'}) {
+    print STDOUT "$program: creating directory '$ENV{CERT_TOOL_HOME}'\n" if $quiet;
+    unless(mkdir($ENV{'CERT_TOOL_HOME'}, 0700)) {
+      die "$program: unable to create $ENV{'CERT_TOOL_HOME'}: $!\n";
+    }
+  }
+
+  # Create the configuration directory.
+  unless (-d "$ENV{'CERT_TOOL_HOME'}/etc") {
+   print STDOUT "$program: creating directory '$ENV{'CERT_TOOL_HOME'}/etc'\n" if $quiet;
+    unless (mkdir("$ENV{'CERT_TOOL_HOME'}/etc", 0700)) {
+      die "$program: unable to create $ENV{'CERT_TOOL_HOME'}/etc: $!\n";
+    }
+  }
+
+  # Prepare the configuration file.
+  unless (-f $config_path) {
+    prepare_config_file();
+
+  } else {
+
+    # As an additional check, compare the timestamp on the configuration file,
+    # if present, with the timestamp of this script (path to self is $0,
+    # hopefully).  If the script is newer, assume that the embedded
+    # configuration file has changed, rename the old config file, and write
+    # out a new one.
+
+    my $config_timestamp = (stat($config_path))[9];
+    my $self_timestamp = (stat($0))[9];
+
+    if ($self_timestamp > $config_timestamp) {
+       print STDOUT "$program is newer than $config_path\n";
+       print STDOUT "writing new $config_path\n";
+       print STDOUT "old configuration renamed to $config_path.old\n";
+
+      rename($config_path, "$config_path.old");
+      prepare_config_file();
+    }
+  }
+
+  # Prepare serial number file.
+  prepare_serial_file();
+
+  # Prepare the index database file.
+  prepare_index_file();
+
+  # Prepare a randomness seed file.
+  prepare_rand_file();
+}
+
+# --------------------------------------------------------------------------
+sub sign_CA_CSR {
+  my %args = @_;
+
+  my $csr_file = $args{'csr_file'};
+  my $cert_file = $args{'cert_file'};
+  my $ca_cert_file = $args{'ca_cert_file'};
+  my $ca_key_file = $args{'ca_key_file'};
+
+  print STDOUT "$program: signing CA CSR\n" if $quiet;
+  execute_command("ca -batch -config $config_path -extensions cert_tool_x509_ca_ext -policy cert_tool_ca_policy -cert $ca_cert_file -keyfile $ca_key_file -in $csr_file -out $cert_file", 0);
+
+  # Create a symlink to the "hash" name of the new cert in the same directory
+  # as the <N>.pem certs are generated; makes 'openssl verify -CApath' happy.
+  # Use the c_rehash script for this.
+  `$c_rehash $cert_tool_home`;
+
+  # Clean up.
+  unlink ("$serial_path.old", "$index_path.old");
+}
+
+# --------------------------------------------------------------------------
+sub sign_CSR {
+  my %args = @_;
+
+  my $csr_file = $args{'csr_file'};
+  my $cert_file = $args{'cert_file'};
+  my $ca_cert_file = $args{'ca_cert_file'};
+  my $ca_key_file = $args{'ca_key_file'};
+
+  # Sign the CSR.
+  print STDOUT "$program: signing CSR\n" if $quiet;
+  execute_command("ca -batch -config $config_path -cert $ca_cert_file -keyfile $ca_key_file -out $cert_file -in $csr_file", 0);
+
+  chomp(my $serial = `cat $serial_path`);
+
+  # Create a symlink to the "hash" name of the new cert in the same directory
+  # as the <N>.pem certs are generated; makes 'openssl verify -CApath' happy.
+  my $command = "ln -s $cert_tool_home/$serial.pem `$openssl x509 -noout -hash -in $cert_tool_home/$serial.pem`";
+
+  # Clean up.
+  unlink ("$serial_path.old", "$index_path.old");
+}
+
+# --------------------------------------------------------------------------
+sub usage {
+  print STDOUT <<END_OF_USAGE;
+
+usage: $program [options]
+
+  $program is designed to allow for automatic creation of a CA hierarchy,
+  including root CA (Certificate Authority) certificates, non-root CA
+  certificates, and non-CA certificates.  As $program makes use of the
+  req -set_serial option, it requires that OpenSSL-0.9.7-beta2 or later be
+  used.
+
+  $program contains an embedded OpenSSL configuration file, and operates such
+  that every time it runs, $program will make sure the necessary preparations
+  have been made, i.e. the configuration file exists, the database index and
+  serial number files exist, and a randomness file exists and contains enough
+  random bits.  If any of the files are missing, or if there is not enough
+  randomness, $program corrects the situation, insuring that the requested
+  operations can be carried out.  $program creates these administrative
+  files in an etc/ directory, under $cert_tool_home.
+
+  The following example shows the creation of a three-level CA hierarchy with
+  three $program commands:
+
+    $program --create-ca=root-ca --signing-ca=self --combined
+
+    $program --create-ca=mid-ca --signing-ca=root-ca.pem \
+      --signing-key=root-ca.pem --combined
+
+    $program --create-cert=end --signing-ca=mid-ca.pem \
+      --signing-key=mid-ca.pem --combined
+
+Options:
+
+  --combined
+
+      This option directs $program to concatenate the generated key and
+      certificate files into a single file, \$name.pem, certificate
+      file first.  The key and certificate files are then deleted.
+
+  --create-ca
+
+      Create a new CA certificate.  Requires a name, e.g.:
+
+        --create-ca=root
+
+      This will create two new files, \$name.key.pem for the generated RSA key,
+      and \$name.cert.pem for the generated CA certificate file.
+
+  --create-cert
+
+      Create a new certificate.  Requires a name, e.g.:
+
+        --create-cert=spidey
+
+      This will create two new files, \$name.key.pem for the generated RSA key,
+      and \$name.cert.pem for the generated certificate file.  The hostname
+      or IP address makes for a suitable name to use.
+
+  --days-valid
+
+      Configures the number of days for which the generated certificate will
+      be valid.  Defaults to 365 days (1 year).
+
+  --help
+
+      Displays this message.
+
+  --key-cipher
+
+      When creating a new RSA key, protect the private key by encrypting
+      it using the configured cipher and a passphrase.  The cipher must
+      be one of: "des", "des3", or "idea".  Since $program is intended for
+      automated use, the default is to use no passphrase, which is not a
+      good security configuration.
+
+  --key-length
+
+      Configure the key length, in bits, to use.  Defaults to 1024.
+
+  --quiet
+
+      Displays the operations $program is undertaking.
+
+  --signing-ca
+
+      Path to the CA certificate to use for signing the certificate being
+      generated.  To generate a root CA certificate, use a path or "self".
+
+  --signing-key
+
+      Path to the CA key to use for signing the certificate being generated.
+      If generating a root CA certificate, this parameter is not required.
+
+  --verbose
+
+      Displays the operations $program is undertaking, and the output from
+      the openssl commands executed.  This is useful for determining what
+      went wrong if ever an openssl command fails.
+
+  --with-csr
+
+      A CSR, a certificate signing request, is automatically generated when
+      creating a non-root CA certificate, or a non-CA certificate.  If,
+      however, a CSR has been generated by some other source, and merely
+      needs to be signed by your CA certificate to become a real certificate,
+      use this option to specify the path to the given CSR file.
+
+END_OF_USAGE
+
+  exit 0;
+}
+# --------------------------------------------------------------------------
+
+__DATA__
+# ---------------------------------------------------------------------------
+#  Certtool OpenSSL configuration file.
+#
+#  This file was auto-generated by %program% on %date%.
+# ---------------------------------------------------------------------------
+
+HOME = /var/lib/cert-tool
+
+[ ca ]
+default_ca = cert_tool_ca
+
+[ cert_tool_ca ]
+cert_tool_home = $ENV::CERT_TOOL_HOME
+certificate = $cert_tool_home/cert-tool.cert.pem
+database = $cert_tool_home/etc/cert-tool.index
+default_days = $ENV::CERT_TOOL_DAYS_VALID
+default_md = md5
+new_certs_dir = $cert_tool_home
+policy = cert_tool_ca_policy
+preserve = yes
+private_key = $cert_tool_home/etc/cert-tool.key.pem
+RANDFILE  = $cert_tool_home/etc/cert-tool.rand
+serial = $cert_tool_home/etc/cert-tool.serial
+x509_extensions = cert_tool_x509_ext
+
+[ cert_tool_ca_policy ]
+commonName = supplied
+countryName = match
+emailAddress = supplied
+organizationName = match
+organizationalUnitName = match
+stateOrProvinceName = match
+
+[ req ]
+default_bits = $ENV::CERT_TOOL_KEY_LEN
+default_keyfile = key.pem
+distinguished_name = cert_tool_distinguished_name
+prompt = no
+string_mask = nombstr   
+x509_extensions = cert_tool_x509_ca_ext
+
+# ---------------------------------------------------------
+# /* FIXME */
+# Fetch the following from whois ${domain} (Administrative)
+# ---------------------------------------------------------
+[ cert_tool_distinguished_name ]
+commonName = $ENV::CERT_TOOL_COMMON_NAME
+countryName = US
+stateOrProvinceName = Tennessee
+localityName = Nashville
+0.organizationName = Web Sages Inc.
+0.organizationalUnitName = Information Technology
+1.organizationalUnitName = James S White
+emailAddress = whitejs@websages.com
+
+[ cert_tool_x509_ext ]
+basicConstraints = CA:FALSE
+nsComment = "CertTool Certificate"
+subjectAltName = @cert_tool_alt_name
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+
+[ cert_tool_x509_ca_ext ]
+basicConstraints = CA:TRUE
+subjectAltName = @cert_tool_ca_alt_name
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer:always
+
+[ crl_ext ]
+authorityKeyIdentifier = keyid:always,issuer:always
+
+[ cert_tool_alt_name ]
+DNS = $ENV::CERT_TOOL_ALT_DNS
+email = $ENV::CERT_TOOL_ALT_EMAIL
+IP = $ENV::CERT_TOOL_ALT_IP
+URI = $ENV::CERT_TOOL_ALT_URI
+
+[ cert_tool_ca_alt_name ]
+DNS = golem.castaglia.org
+email = tj@castaglia.org
+IP = 127.0.0.1
+URI = http://www.castaglia.org
