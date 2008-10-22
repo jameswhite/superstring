@@ -20,16 +20,40 @@
 
 use strict;
 use Net::XWhois;
-use Sys::Hostname;
-use Sys::Hostname::FQDN;
+use Sys::Hostname::FQDN qw( short fqdn );
+use Geography::USStates;
 use Data::Dumper;
 
 my $certinfo;
+my $hostname = short();
+$certinfo->{'commonName'}=fqdn();
+$certinfo->{'domainName'}=$certinfo->{'commonName'};
+$certinfo->{'domainName'}=~s/^$hostname\.//;
+my $whois = new Net::XWhois Domain => $certinfo->{'domainName'};
+$certinfo->{'name'}=$whois->name();
+$certinfo->{'name'}=~tr/A-Z/a-z/;
+my $admin = $whois->contact_admin();
+my @admin = $whois->contact_admin();
+foreach my $email ($whois->contact_emails()){
+    if($admin[0]=~m/$email/){
+        $certinfo->{'email'}=$email;
+        $certinfo->{'admin'}=$admin[0];
+        $certinfo->{'admin'}=~s/$email$//g;
+        $certinfo->{'admin'}=~s/\s*$//g;
+    }
+}
+my @registrant=$whois->contact_admin();
+$certinfo->{'organization'}=$registrant[1]||$registrant[0];
+my $cityst=$admin[3];
+my ($city,$state,$zip);
+if($cityst=~m/(\S*)\s*(\S*)\s*(\d+)/){
+    ($city,$state,$zip)=($1,$2,$3);
+    $city=~s/,$//;
+}
+$certinfo->{'localityName'}=$city;
+$certinfo->{'stateOrProvinceName'}=getState($state);
+$certinfo->{'countryName'}=$admin[4];
 
-my $certinfo->{'commonName'}=$fqdn = fqdn();
-print Data::Dumper->Dump([$certinfo]);
-
-exit;
 use File::Basename qw(basename);
 use Getopt::Long;
 
@@ -692,13 +716,13 @@ x509_extensions = cert_tool_x509_ca_ext
 # ---------------------------------------------------------
 [ cert_tool_distinguished_name ]
 commonName = $ENV::CERT_TOOL_COMMON_NAME
-countryName = US
-stateOrProvinceName = Tennessee
-localityName = Nashville
-0.organizationName = Web Sages Inc.
+countryName = $certinfo->{'countryName'}
+stateOrProvinceName = $certinfo->{'stateOrProvinceName'}
+localityName = $certinfo->{'localityName'}
+0.organizationName = $certinfo->{'organization'}
 0.organizationalUnitName = Information Technology
-1.organizationalUnitName = James S White
-emailAddress = whitejs@websages.com
+1.organizationalUnitName = $certinfo->{'admin'}
+emailAddress = $certinfo->{'email'}
 
 [ cert_tool_x509_ext ]
 basicConstraints = CA:FALSE
@@ -723,7 +747,7 @@ IP = $ENV::CERT_TOOL_ALT_IP
 URI = $ENV::CERT_TOOL_ALT_URI
 
 [ cert_tool_ca_alt_name ]
-DNS = golem.castaglia.org
-email = tj@castaglia.org
+DNS = $certinfo->{'commonName'}
+email = $certinfo->{'email'}
 IP = 127.0.0.1
-URI = http://www.castaglia.org
+URI = http://$certinfo->{'commonName'}
