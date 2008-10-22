@@ -60,7 +60,7 @@ use Getopt::Long;
 chomp(my $date = `date +%Y-%m-%d`);
 my $program = basename($0);
 my $quiet = 0;
-my $verbose = 0;
+my $verbose = 1;
 
 # Defaults
 my $openssl = '/usr/bin/openssl';
