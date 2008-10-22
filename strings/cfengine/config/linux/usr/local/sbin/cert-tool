@@ -19,42 +19,46 @@
 # --------------------------------------------------------------------------
 
 use strict;
+
+sub whois_populate(){
 use Net::XWhois;
 use Sys::Hostname::FQDN qw( short fqdn );
 use Geography::USStates;
 use Data::Dumper;
 
-my $certinfo;
-my $hostname = short();
-$certinfo->{'commonName'}=fqdn();
-$certinfo->{'domainName'}=$certinfo->{'commonName'};
-$certinfo->{'domainName'}=~s/^$hostname\.//;
-my $whois = new Net::XWhois Domain => $certinfo->{'domainName'};
-$certinfo->{'name'}=$whois->name();
-$certinfo->{'name'}=~tr/A-Z/a-z/;
-my $admin = $whois->contact_admin();
-my @admin = $whois->contact_admin();
-foreach my $email ($whois->contact_emails()){
-    if($admin[0]=~m/$email/){
-        $certinfo->{'email'}=$email;
-        $certinfo->{'admin'}=$admin[0];
-        $certinfo->{'admin'}=~s/$email$//g;
-        $certinfo->{'admin'}=~s/\s*$//g;
+    my $certinfo;
+    my $hostname = short();
+    $certinfo->{'commonName'}=fqdn();
+    $certinfo->{'domainName'}=$certinfo->{'commonName'};
+    $certinfo->{'domainName'}=~s/^$hostname\.//;
+    my $whois = new Net::XWhois Domain => $certinfo->{'domainName'};
+    $certinfo->{'name'}=$whois->name();
+    $certinfo->{'name'}=~tr/A-Z/a-z/;
+    my $admin = $whois->contact_admin();
+    my @admin = $whois->contact_admin();
+    foreach my $email ($whois->contact_emails()){
+        if($admin[0]=~m/$email/){
+            $certinfo->{'email'}=$email;
+            $certinfo->{'admin'}=$admin[0];
+            $certinfo->{'admin'}=~s/$email$//g;
+            $certinfo->{'admin'}=~s/\s*$//g;
+        }
     }
+    my @registrant=$whois->contact_admin();
+    $certinfo->{'organization'}=$registrant[1]||$registrant[0];
+    my $cityst=$admin[3];
+    my ($city,$state,$zip);
+    if($cityst=~m/(\S*)\s*(\S*)\s*(\d+)/){
+        ($city,$state,$zip)=($1,$2,$3);
+        $city=~s/,$//;
+    }
+    $certinfo->{'localityName'}=$city;
+    $certinfo->{'stateOrProvinceName'}=getState($state);
+    $certinfo->{'countryName'}=$admin[4];
+    return $certinfo;
 }
-my @registrant=$whois->contact_admin();
-$certinfo->{'organization'}=$registrant[1]||$registrant[0];
-my $cityst=$admin[3];
-my ($city,$state,$zip);
-if($cityst=~m/(\S*)\s*(\S*)\s*(\d+)/){
-    ($city,$state,$zip)=($1,$2,$3);
-    $city=~s/,$//;
-}
-$certinfo->{'localityName'}=$city;
-$certinfo->{'stateOrProvinceName'}=getState($state);
-$certinfo->{'countryName'}=$admin[4];
-
-use File::Basename qw(basename);
+    
+    use File::Basename qw(basename);
 use Getopt::Long;
 
 chomp(my $date = `date +%Y-%m-%d`);
@@ -372,7 +376,7 @@ sub generate_root_CA_cert {
 
 # --------------------------------------------------------------------------
 sub prepare_config_file {
-  my $certinfo=shift;
+  my $c=whois_populate();
   $config_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.conf";
 
   print STDOUT "$program: writing '$config_path'\n" if $quiet;
@@ -382,7 +386,10 @@ sub prepare_config_file {
   while (my $line = <DATA>) {
     $line =~ s/%program%/$program/;
     $line =~ s/%date%/$date/;
-    if($line =~ m/~(.*)~/){ $line =~ s/~$1~/$certinfo->{$1}/; };
+    if($line =~ m/~(.+)~/){ 
+        print "$1 --> $c->{$1}\n";
+        $line =~ s/~$1~/$c->{$1}/; 
+    };
     print CONFIG $line;
   }
   close(CONFIG);
@@ -455,6 +462,7 @@ sub prepare_serial_file {
 # --------------------------------------------------------------------------
 sub prepare_tool {
   my %args = @_;
+
   $config_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.conf";
 
   # Prepare the environment.
@@ -478,7 +486,7 @@ sub prepare_tool {
 
   # Prepare the configuration file.
   unless (-f $config_path) {
-    prepare_config_file($certinfo);
+    prepare_config_file();
 
   } else {
 
@@ -497,7 +505,7 @@ sub prepare_tool {
        print STDOUT "old configuration renamed to $config_path.old\n";
 
       rename($config_path, "$config_path.old");
-      prepare_config_file($certinfo);
+      prepare_config_file();
     }
   }
 
