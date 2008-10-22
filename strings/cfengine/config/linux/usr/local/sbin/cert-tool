@@ -389,6 +389,7 @@ sub prepare_config_file {
     if($line =~ m/~(.+)~/){ 
         print "$1 --> $c->{$1}\n";
         $line =~ s/~$1~/$c->{$1}/; 
+        print "$line\n";
     };
     print CONFIG $line;
   }
