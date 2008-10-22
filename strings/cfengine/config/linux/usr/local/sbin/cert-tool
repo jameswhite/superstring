@@ -22,7 +22,14 @@ use strict;
 use Net::XWhois;
 use Sys::Hostname;
 use Sys::Hostname::FQDN;
+use Data::Dumper;
 
+my $certinfo;
+
+my $certinfo->{'commonName'}=$fqdn = fqdn();
+print Data::Dumper->Dump([$certinfo]);
+
+exit;
 use File::Basename qw(basename);
 use Getopt::Long;
 
