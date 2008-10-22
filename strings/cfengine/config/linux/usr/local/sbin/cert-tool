@@ -16,10 +16,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
 #
-#  $Id: cert-tool,v 1.11 2002/12/06 23:20:58 tj Exp tj $
 # --------------------------------------------------------------------------
 
 use strict;
+use Net::XWhois;
+use Sys::Hostname;
+use Sys::Hostname::FQDN;
 
 use File::Basename qw(basename);
 use Getopt::Long;

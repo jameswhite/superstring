@@ -1,0 +1,11 @@
+control:
+        actionsequence          = ( copy editfiles processes shellcommands )
+
+copy:
+    ca_root.linux::
+        $(configroot)/linux/usr/local/sbin/cert-tool  dest=/usr/local/sbin/cert-tool
+         mode=744 type=binary server=$(policyhost) trustkey=true
+
+shellcommands:
+#       ca_root.linux::
+#           "/usr/local/sbin/git2masterfiles"

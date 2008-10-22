@@ -122,5 +122,6 @@ if($ss){
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
+print +ca_root
 #print Data::Dumper->Dump([$ss]);
 exit;
