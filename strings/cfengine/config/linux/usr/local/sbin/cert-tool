@@ -372,6 +372,7 @@ sub generate_root_CA_cert {
 
 # --------------------------------------------------------------------------
 sub prepare_config_file {
+  my $certinfo=shift;
   $config_path = "$ENV{'CERT_TOOL_HOME'}/etc/cert-tool.conf";
 
   print STDOUT "$program: writing '$config_path'\n" if $quiet;
@@ -381,7 +382,7 @@ sub prepare_config_file {
   while (my $line = <DATA>) {
     $line =~ s/%program%/$program/;
     $line =~ s/%date%/$date/;
-
+    if($line =~ m/~(.*)~/){ $line =~ s/~$1~/$certinfo->{$1}/; };
     print CONFIG $line;
   }
   close(CONFIG);
@@ -477,7 +478,7 @@ sub prepare_tool {
 
   # Prepare the configuration file.
   unless (-f $config_path) {
-    prepare_config_file();
+    prepare_config_file($certinfo);
 
   } else {
 
@@ -496,7 +497,7 @@ sub prepare_tool {
        print STDOUT "old configuration renamed to $config_path.old\n";
 
       rename($config_path, "$config_path.old");
-      prepare_config_file();
+      prepare_config_file($certinfo);
     }
   }
 
@@ -716,13 +717,13 @@ x509_extensions = cert_tool_x509_ca_ext
 # ---------------------------------------------------------
 [ cert_tool_distinguished_name ]
 commonName = $ENV::CERT_TOOL_COMMON_NAME
-countryName = $certinfo->{'countryName'}
-stateOrProvinceName = $certinfo->{'stateOrProvinceName'}
-localityName = $certinfo->{'localityName'}
-0.organizationName = $certinfo->{'organization'}
+countryName = ~countryName~
+stateOrProvinceName = ~stateOrProvinceName~
+localityName = ~localityName~
+0.organizationName = ~organization~
 0.organizationalUnitName = Information Technology
-1.organizationalUnitName = $certinfo->{'admin'}
-emailAddress = $certinfo->{'email'}
+1.organizationalUnitName = ~admin~
+emailAddress = ~email~
 
 [ cert_tool_x509_ext ]
 basicConstraints = CA:FALSE
@@ -747,7 +748,7 @@ IP = $ENV::CERT_TOOL_ALT_IP
 URI = $ENV::CERT_TOOL_ALT_URI
 
 [ cert_tool_ca_alt_name ]
-DNS = $certinfo->{'commonName'}
-email = $certinfo->{'email'}
+DNS = ~commonName~
+email = ~email~
 IP = 127.0.0.1
-URI = http://$certinfo->{'commonName'}
+URI = http://~commonName~
