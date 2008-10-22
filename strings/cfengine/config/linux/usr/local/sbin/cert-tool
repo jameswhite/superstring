@@ -387,8 +387,8 @@ sub prepare_config_file {
     $line =~ s/%program%/$program/;
     $line =~ s/%date%/$date/;
     if($line =~ m/~(.+)~/){ 
-        print "$1 --> $c->{$1}\n";
-        $line =~ s/~$1~/$c->{$1}/; 
+        $line=~s/~$1~/$c->{$1}/; 
+        print "s/~$1~/$c->{$1}/\n";
         print "$line\n";
     };
     print CONFIG $line;
