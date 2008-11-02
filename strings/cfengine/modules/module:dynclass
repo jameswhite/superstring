@@ -5,8 +5,12 @@ use strict;
 # determine this host's domain name
 # do a srv record lookup for ldap tls 389 on this domain name
 # if this host's fqdn is one of the returned records:
-#     try to connect to self's fqdn for LDAP
-#     
+#     try to connect to self's fqdn for LDAP, 
+#     then try to connect to other records until one connects
+# look up cn=hostname, ou=Hosts, dc=domain, dc=domain, dc=domain
+# if lookup is good, define all classes in record.
+# if no lookup, then define nothing.
+
 package Superstring;
 use Data::Dumper;
 
