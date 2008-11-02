@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+use strict;
+# This module simply defines where $cfroot is for update.conf 
+# If this module breaks, all of cfengine's git updates will not
+# propigate. So keep this module simple, please.
+
+package Cfengine::Root;
+use Data::Dumper;
+
+sub new{
+    my $class = shift;
+    my $construct = shift if @_;
+    my $self = { };
+    bless ($self, $class);
+
+    if(-f "/etc/debian_version"){
+        $self->{'variables'}->{'cfengine_root'}="/var/lib/cfengine2";
+    }elsif(-f "/etc/redhat_release"){
+        $self->{'variables'}->{'cfengine_root'}="/var/cfengine";
+    }else{
+        system("/bin/ln -s /var/lib/cfengine2 /var/cfengine") if(-d "/var/lib/cfengine2");
+        system("/bin/ln -s /var/cfengine /var/lib/cfengine2") if(-d "/var/cfengine");
+        $self->{'variables'}->{'cfengine_root'}="/var/cfengine";
+    }
+    return $self;
+}
+
+sub dumpclasses(){
+    my $self=shift;
+    foreach my $c (@{ $self->{'cfclasses'} }){
+        print "+",$c,"\n";
+    }
+    return $self;
+}
+
+sub dumpvariables(){
+    my $self=shift;
+    foreach my $k (keys(%{ $self->{'variables'} })){
+        print "=",$k,"=",$self->{'variables'}->{$k},"\n";
+    }
+    return $self;
+}
+
+1;
+
+my $cfr = Cfengine::Root->new();
+if($cfr){
+    $cfr->dumpclasses();
+    $cfr->dumpvariables();
+}
+exit;
