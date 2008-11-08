@@ -189,7 +189,7 @@ sub ldapsearch{
     $mesg = $ldap->search( # perform a search base   => $setup->{'basedn'},
                         filter => "($setup->{'searchdn'})");
     $mesg->code && warn $mesg->error;
-    foreach $entry ($mesg->entries) { $entry->dump; }
+    foreach my $entry ($mesg->entries) { $entry->dump; }
     $mesg = $ldap->unbind;   # take down session
     return $self;
 }
