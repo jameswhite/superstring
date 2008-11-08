@@ -187,7 +187,7 @@ sub ldapsearch{
     my $returnlist;
     my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
     my $mesg = $ldap->bind ;    # an anonymous bind
-print STDERR "base => $setup->{'basedn'}, filter => "($setup->{'searchdn'})\n";
+print STDERR "base => $setup->{'basedn'}, filter => \"($setup->{'searchdn'})\"\n";
     $mesg = $ldap->search( base => $setup->{'basedn'}, filter => "($setup->{'searchdn'})");
     $mesg->code && warn $mesg->error;
     foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
