@@ -192,7 +192,7 @@ print STDERR "base => $setup->{'basedn'}, filter => \"($setup->{'search'})\"\n";
     $mesg->code && warn $mesg->error;
     foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
     $mesg = $ldap->unbind;   # take down session
-    return $returnlist;
+    return [$returnlist];
 }
  
 1;
