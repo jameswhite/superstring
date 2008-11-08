@@ -191,7 +191,7 @@ sub ldapsearch{
     $mesg->code && warn $mesg->error;
     foreach $entry ($mesg->entries) { $entry->dump; }
     $mesg = $ldap->unbind;   # take down session
-    $return $self;
+    return $self;
 }
  
 1;
