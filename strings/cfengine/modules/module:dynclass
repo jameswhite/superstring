@@ -45,7 +45,7 @@ use Sys::Hostname::Long;
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
     push(@{ $self->{'cfclasses'} },'base');
-    if($self->{'cfg'}->{'domain'} ne ""){ 
+    if($self->{'cfg'}->{'domain'} ne "")/{ 
         return $self;
     }
     return undef;
@@ -136,7 +136,7 @@ sub domain{
     return undef;
 }
 
-sub hostname{
+sub base_hostname{
     my $self=shift;
     return $self->{'cfg'}->{'hostname'} if defined $self->{'cfg'}->{'hostname'};
     return undef;
@@ -157,7 +157,7 @@ sub host_ldap_record(){
 use Net::LDAP;
     my $self=shift;
     my $host=shift;
-    my $searchdn="cn=".$self->hostname()."ou=Hosts,dc=".join(",dc=",split(/./,$self->domain()));
+    my $searchdn="cn=".$self->base_hostname()."ou=Hosts,dc=".join(",dc=",split(/./,$self->domain()));
     print STDERR "-=[$searchdn]=-\n";
     # loop through ldap_records and see if we are one of them...
     my $iamone=0;
