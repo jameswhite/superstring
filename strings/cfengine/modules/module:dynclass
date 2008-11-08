@@ -158,7 +158,6 @@ use Net::LDAP;
     my $self=shift;
     my $host=shift;
     my $searchdn="cn=".$self->base_hostname().",ou=Hosts,dc=".join(",dc=",split(/\./,$self->domain()));
-    print STDERR "-=[$searchdn]=-\n";
     # loop through ldap_records and see if we are one of them...
     my $iamone=0;
     foreach my $ldap_server (@{$self->ldap_servers}){
@@ -196,5 +195,5 @@ if($ss){
     $ss->dumpvariables();
 }
 print "+ca_root\n";
-print Data::Dumper->Dump([$ss->host_ldap_record($ss)]);
+print Data::Dumper->Dump([$ss]);
 exit;
