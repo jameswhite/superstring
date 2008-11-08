@@ -171,7 +171,7 @@ use Net::LDAP;
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
     }
     if(! $fetch_success){
-        foreach my $ldap_server ($self->ldap_servers){
+        foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
             next if($self->{'cfg'}->{'fqdn'} eq $ldap_server);
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
