@@ -161,7 +161,7 @@ use Net::LDAP;
     print STDERR "-=[$searchdn]=-\n";
     # loop through ldap_records and see if we are one of them...
     my $iamone=0;
-    foreach my $ldap_server ($self->ldap_servers){
+    foreach my $ldap_server (@{$self->ldap_servers}){
         if($self->{'cfg'}->{'fqdn'} eq $ldap_server){ $iamone=1; }
     }
     # first try to fetch the record from oneself
