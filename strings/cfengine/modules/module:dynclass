@@ -177,7 +177,7 @@ use Net::LDAP;
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
         }
     }
-    return $record;
+    return $self;
 }
  
 1;
