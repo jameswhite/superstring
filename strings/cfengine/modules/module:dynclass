@@ -173,7 +173,7 @@ use Net::LDAP;
     if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
         foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
-            next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'});
+            next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'}));
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
             $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$ldap_server,'basedn'=>$basedn,'search'=>$searchdn});
         }
