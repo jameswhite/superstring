@@ -157,6 +157,7 @@ sub host_ldap_record(){
 use Net::LDAP;
     my $self=shift;
     my $host=shift;
+    my $basedn="dc=".join(",dc=",split(/\./,$self->domain()));
     my $searchdn="cn=".$self->base_hostname().",ou=Hosts,dc=".join(",dc=",split(/\./,$self->domain()));
     # loop through ldap_records and see if we are one of them...
     my $iamone=0;
@@ -164,19 +165,33 @@ use Net::LDAP;
         if($self->{'cfg'}->{'fqdn'} eq $ldap_server){ $iamone=1; }
     }
     # first try to fetch the record from oneself
-    my $fetch_success=0;
     if($iamone){
         # get host record from our self
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
+        $self->{'cfg'}->{'ldap'}->{'hostrecord'}=self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
     }
-    if(! $fetch_success){
+    if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'}){
         foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
-            next if($self->{'cfg'}->{'fqdn'} eq $ldap_server);
+            next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'});
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
+            $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$ldap_server,'basedn'=>$basedn,'search'=>$searchdn});
         }
     }
     return $self;
+}
+
+sub ldapsearch{
+    my $self=shift;
+    my $setup=shift;
+    $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
+    $mesg = $ldap->bind ;    # an anonymous bind
+    $mesg = $ldap->search( # perform a search base   => $setup->{'basedn'},
+                        filter => "($setup->{'searchdn'})");
+    $mesg->code && warn $mesg->error;
+    foreach $entry ($mesg->entries) { $entry->dump; }
+    $mesg = $ldap->unbind;   # take down session
+    $return $self;
 }
  
 1;
