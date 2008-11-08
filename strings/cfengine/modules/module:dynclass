@@ -137,6 +137,7 @@ sub dumpvariables(){
 }
 
 sub ldap_servers{
+    my $self=shift;
     return $self->{'cfg'}->{'ldap_servers'} if defined $self->{'cfg'}->{'ldap_servers'};
     return undef;
 }
