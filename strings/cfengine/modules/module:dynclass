@@ -51,18 +51,6 @@ use Sys::Hostname::Long;
     return undef;
 }
 ###################################################
-# Attempt to contact all the LDAP Servers 
-#     and get this hosts LDAP record
-###################################################
-sub get_ldap_record(){
-use Net::LDAP;
-    my $self=shift;
-    # foreach 
- 
-    return $self;
-}
- 
-###################################################
 # Get all the DNS records that could determine
 #     what this host is supposed to be
 ###################################################
@@ -142,13 +130,67 @@ sub ldap_servers{
     return undef;
 }
 
+sub domain{
+    my $self=shift;
+    return $self->{'cfg'}->{'domain'} if defined $self->{'cfg'}->{'domain'};
+    return undef;
+}
+
+sub hostname{
+    my $self=shift;
+    return $self->{'cfg'}->{'hostname'} if defined $self->{'cfg'}->{'hostname'};
+    return undef;
+}
+
+sub fqdn{
+    my $self=shift;
+    return $self->{'cfg'}->{'fqdn'} if defined $self->{'cfg'}->{'fqdn'};
+    return undef;
+}
+
+
+###################################################
+# Attempt to contact all the LDAP Servers 
+#     and get this hosts LDAP record
+###################################################
+sub host_ldap_record(){
+use Net::LDAP;
+    my $self=shift;
+    my $host=shift;
+    my $searchdn="cn=".$self->hostname()."ou=Hosts,dc=".join(",dc=",split(/./,$self->domain()));
+    print STDERR "-=[$searchdn]=-\n";
+    # loop through ldap_records and see if we are one of them...
+    my $iamone=0;
+    foreach my $ldap_server ($self->ldap_servers){
+        if($self->{'cfg'}->{'fqdn'} eq $ldap_server){ $iamone=1; }
+    }
+    # first try to fetch the record from oneself
+    my $fetch_success=0;
+    if($iamone){
+        # get host record from our self
+        print STDERR "Searching for $searchdn via ldap://".$self->fqdn().":389\n";
+    }
+    if(! $fetch_success){
+        foreach my $ldap_server ($self->ldap_servers){
+            # We already tried self...
+            next if($self->{'cfg'}->{'fqdn'} eq $ldap_server);
+            print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
+        }
+    }
+    return $self;
+}
+ 
 1;
 
 my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
-    print Data::Dumper->Dump([$ss->ldap_servers()]);
-    #defined($ss->get_ldap_record){
+    if(defined($ss->ldap_servers())){
+        print Data::Dumper->Dump([$ss->host_ldap_record($fqdn)]) 
+            if defined($ss->host_ldap_record($fqdn));
+    }else{
+        print "No ldap server SRV records found in DNS\n";
+    }
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
