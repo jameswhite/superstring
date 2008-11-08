@@ -136,14 +136,20 @@ sub dumpvariables(){
     return $self;
 }
 
+sub ldap_servers{
+    return $self->{'cfg'}->{'ldap_servers'} if defined $self->{'cfg'}->{'ldap_servers'};
+    return undef;
+}
+
 1;
 
 my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
+    print Data::Dumper->Dump([$ss->ldap_servers()]);
+    #defined($ss->get_ldap_record){
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
 print "+ca_root\n";
-print Data::Dumper->Dump([$ss]);
 exit;
