@@ -168,7 +168,7 @@ use Net::LDAP;
     if($iamone){
         # get host record from our self
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
-        $self->{'cfg'}->{'ldap'}->{'hostrecord'}=self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
+        $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
     }
     if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
         foreach my $ldap_server (@{$self->ldap_servers}){
