@@ -142,7 +142,7 @@ sub hostname{
     return undef;
 }
 
-sub fqdn{
+sub fqdomain{
     my $self=shift;
     return $self->{'cfg'}->{'fqdn'} if defined $self->{'cfg'}->{'fqdn'};
     return undef;
@@ -168,7 +168,7 @@ use Net::LDAP;
     my $fetch_success=0;
     if($iamone){
         # get host record from our self
-        print STDERR "Searching for $searchdn via ldap://".$self->fqdn().":389\n";
+        print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
     }
     if(! $fetch_success){
         foreach my $ldap_server ($self->ldap_servers){
@@ -186,8 +186,8 @@ my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
     if(defined($ss->ldap_servers())){
-        print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdn())]) 
-            if defined($ss->host_ldap_record($ss->fqdn()));
+        print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdomain())]) 
+            if defined($ss->host_ldap_record($ss->fqdomain()));
     }else{
         print "No ldap server SRV records found in DNS\n";
     }
