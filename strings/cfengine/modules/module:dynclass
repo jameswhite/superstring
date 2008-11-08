@@ -184,8 +184,8 @@ use Net::LDAP;
 sub ldapsearch{
     my $self=shift;
     my $setup=shift;
-    $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
-    $mesg = $ldap->bind ;    # an anonymous bind
+    my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
+    my $mesg = $ldap->bind ;    # an anonymous bind
     $mesg = $ldap->search( # perform a search base   => $setup->{'basedn'},
                         filter => "($setup->{'searchdn'})");
     $mesg->code && warn $mesg->error;
