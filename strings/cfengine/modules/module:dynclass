@@ -186,8 +186,8 @@ my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
     if(defined($ss->ldap_servers())){
-        print Data::Dumper->Dump([$ss->host_ldap_record($fqdn)]) 
-            if defined($ss->host_ldap_record($fqdn));
+        print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdn())]) 
+            if defined($ss->host_ldap_record($ss->fqdn()));
     }else{
         print "No ldap server SRV records found in DNS\n";
     }
