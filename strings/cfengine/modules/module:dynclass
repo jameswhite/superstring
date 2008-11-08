@@ -177,7 +177,7 @@ use Net::LDAP;
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
         }
     }
-    return $self;
+    return $record;
 }
  
 1;
@@ -186,8 +186,9 @@ my $ss = Superstring->new();
 if($ss){
     $ss->get_dns_records();
     if(defined($ss->ldap_servers())){
-        print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdomain())]) 
-            if defined($ss->host_ldap_record($ss->fqdomain()));
+        $ss->host_ldap_record($ss->fqdomain());
+        #print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdomain())]) 
+        #    if defined($ss->host_ldap_record($ss->fqdomain()));
     }else{
         print "No ldap server SRV records found in DNS\n";
     }
