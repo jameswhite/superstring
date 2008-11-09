@@ -154,11 +154,10 @@ sub fqdomain{
 #     and get this hosts LDAP record
 ###################################################
 sub host_ldap_record(){
-use Net::LDAP;
     my $self=shift;
     my $host=shift;
-    my $basedn="dc=".join(",dc=",split(/\./,$self->domain()));
-    my $searchdn="cn=".$self->base_hostname().",ou=Hosts,dc=".join(",dc=",split(/\./,$self->domain()));
+    my $basedn="cn=".$self->base_hostname().",ou=Hosts,dc=".join(",dc=",split(/\./,$self->domain()));
+    my $searchdn="cn=".$self->base_hostname();
     # loop through ldap_records and see if we are one of them...
     my $iamone=0;
     foreach my $ldap_server (@{$self->ldap_servers}){
@@ -182,6 +181,7 @@ use Net::LDAP;
 }
 
 sub ldapsearch{
+use Net::LDAP;
     my $self=shift;
     my $setup=shift;
     my $returnlist;
