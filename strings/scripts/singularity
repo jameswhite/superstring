@@ -3,10 +3,11 @@ export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 export LOGDIR="/var/log/superstring"
 export LOG="${LOGDIR}/singularity.log"
 export STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
+if [ ! -d ${LOGDIR} ];then mkdir ${LOGDIR};fi
+touch ${LOG}
 log(){
     echo "$*" >> ${LOG}
 }
-touch /var/log/singularity.log
 ec2_host=0
 log "It worked!"
 
