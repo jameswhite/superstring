@@ -3,9 +3,10 @@ export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 export LOG="/var/log/singularity.log"
 log(){
     echo "$*" >> ${LOG}
+}
 touch /var/log/singularity.log
-log "It worked!"
 ec2_host=0
+log "It worked!"
 
 runscript(){
     script="$1"
@@ -19,7 +20,6 @@ runscript(){
     done
     chmod 755 /tmp/${script}
     /tmp/${script} > ${LOGDIR}/${script}.log 2>&1
-
 }
 
 # EC2
