@@ -1,6 +1,7 @@
 #!/bin/bash
 export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
-export LOG="/var/log/singularity.log"
+export LOGDIR="/var/log/superstring"
+export LOG="${LOGDIR}/singularity.log"
 export STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
 log(){
     echo "$*" >> ${LOG}
