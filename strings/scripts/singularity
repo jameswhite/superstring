@@ -1,30 +1,41 @@
 #!/bin/bash
 export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+
+####################################################################
+# Write out a script for fetching and running raw scripts from github
+#
+/bin/cat<<EORS>/usr/local/sbin/runstring
+#!/bin/bash
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+script="\$1"
 export LOGDIR="/var/log/superstring"
-export LOG="${LOGDIR}/singularity.log"
+export LOG="\${LOGDIR}/singularity.log"
 export STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
-if [ ! -d ${LOGDIR} ];then mkdir -p ${LOGDIR};fi
-touch ${LOG}
+if [ ! -d \${LOGDIR} ];then mkdir -p \${LOGDIR};fi
+touch \${LOG}
+LENGTH=0; # github is giving me 0 byte replies...
+ATTEMPT=0
+while [ \${LENGTH} -eq 0 -a \${ATTEMPT} -lt 10 ]; do
+    /usr/bin/wget -qO /tmp/\${script} "\${STRINGROOT}\${script}?raw=true"
+    LENGTH=\$(/usr/bin/wc -l /tmp/\${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
+    ATTEMPT=\$(expr \${ATTEMPT} + 1)
+    echo "script - \${script} (attempt \${ATTEMPT}) \${LENGTH} line reply."
+done
+chmod 755 /tmp/\${script}
+/tmp/\${script} > \${LOGDIR}/\${script}.log 2>&1
+rm /tmp/\${script}
+EORS
+chmod 755 /usr/local/sbin/runstring
+
 log(){
     echo "$*" >> ${LOG}
 }
-ec2_host=0
 log "It worked!"
 
-runscript(){
-    script="$1"
-    LENGTH=0; # github is giving me 0 byte replies...
-    ATTEMPT=0
-    while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 10 ]; do
-        /usr/bin/wget -qO /tmp/${script} "${STRINGROOT}${script}?raw=true"
-        LENGTH=$(/usr/bin/wc -l /tmp/${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
-        ATTEMPT=`expr ${ATTEMPT} + 1`
-        echo "script - ${script} (attempt ${ATTEMPT}) ${LENGTH} line reply."
-    done
-    chmod 755 /tmp/${script}
-    /tmp/${script} > ${LOGDIR}/${script}.log 2>&1
-}
-
+####################################################################
+# EC2 Specific strings
+#
+ec2_host=0
 # EC2
 # come up with something better here plz:
 public_hostname=$(wget -qO - http://169.254.169.254/latest/meta-data/public-hostname)
@@ -34,3 +45,5 @@ if [ ${ec2_host} -ne 0 ];then
    runscript ec2-root-credentials 
    runscript ec2-user-data
 fi
+
+
