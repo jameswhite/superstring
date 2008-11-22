@@ -22,12 +22,18 @@ Click on the Configuration Profile named "My Debian 4.0 Profile" and
 On the page that then loads: Rename it to <hostname> in the Label input 
                              In Drive Setup, set /dev/xdc to be <hostname>-opt
                              Save the Profile
+
 Boot the profile.
 
-fetch and run 
-set the hostname in /etc/hostname, /etc/hosts
-add /dev/xvdc 	/opt	ext3	defaults		0 1 to /etc/fstab
-fetch_and_run: http://www.jameswhite.org/~james/ec2/fix_git
-fetch_and_run: http://www.jameswhite.org/~james/ec2/ruby_on_rails
+DNS:
+Log in as root get the ipaddress on eth0, add a forward record  ('A' record) for it in DNS,
+then go to Members->Linode Manager->host profile->Network->Reverse DNS, and put your hostname in.
+This will set up the reverse DNS record for this host in linodes ARPA domain.
 
+Log in as root. Fetch the singularity script and run 'singularity hostname.fqdn'
 
+add to singularity: 
+  - set the hostname in /etc/hostname, /etc/hosts
+  - put the domain in /etc/mailname
+  - if linode:
+      - add /dev/xvdc 	/opt	ext3	defaults		0 1 to /etc/fstab
