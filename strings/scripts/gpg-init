@@ -2,7 +2,7 @@
 #########################################################################
 # prerequisites:
 #   - packages:
-#       - gpg
+#       - gnupg
 #       - rng-tools
 #   - configs:
 #       - hostname in /etc/hosts (and loopback line)
@@ -10,7 +10,7 @@
 #       - /usr/local/sbin/secret (from secret-init, if running unattended)
 #########################################################################
 export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
-apt-get install -y gpg rng-tools
+apt-get install -y gnupg rng-tools
 # This should probably check that the key is in there too.
 gpg --list-keys|grep -q "^uid.*root@${FQDN}"
 if [ $? -eq 0 ];then 
