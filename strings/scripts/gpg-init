@@ -1,0 +1,44 @@
+#!/bin/bash
+#########################################################################
+# prerequisites:
+#   - packages:
+#       - gpg
+#       - rng-tools
+#   - configs:
+#       - hostname in /etc/hosts (and loopback line)
+#########################################################################
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+# This should probably check that the key is in there too.
+gpg --list-keys|grep -q "^uid.*root@${FQDN}"
+if [ $? -eq 0 ];then 
+    logger -p local5.error -- "$0[$$] root keys already exists. Aborting..."
+    exit
+fi
+if [ -z ${SECRET_PASSPHRASE} ];then
+    logger -p local5.error -- "$0[$$] environment SECRET_PASSPHRASE not set. Aborting..."
+    exit
+fi
+
+PREUMASK=$(umask)
+umask 0377
+TMPFILE=$(mktemp /dev/shm/gpg-genkey.XXXXX)
+/bin/cat<<EOF>${TMPFILE}
+%echo Generating a package signing key
+Key-Type: DSA
+Key-Length: 1024
+Subkey-Type: ELG-E
+Subkey-Length: 2048
+Name-Real:  `hostname --fqdn`
+Name-Email: root@`hostname --fqdn`
+Expire-Date: 0
+Passphrase: ${SECRET_PASSPHRASE}
+%commit
+%echo Done
+EOF
+umask ${PREUMSK}
+/bin/ps -ef | /bin/grep -q "rn[g]d " || /usr/sbin/rngd -r /dev/urandom
+(find / -xdev -type f -exec sha256sum {} >/dev/null \; 2>&1) &
+gpg --batch --gen-key ${TMPFILE} > /var/log/gpg-keygen.log \
+    2> /var/log/gpg-keygen_error.log
+rm ${TMPFILE}
+
