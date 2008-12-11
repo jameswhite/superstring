@@ -55,6 +55,6 @@ Pin-Priority: 999
 EOAP
 
 apt-get -y --force-yes update && -y --force-yes apt-get upgrade
-apt-get remove  git-arch git-cvs git-email git-daemon-run gitk gitweb cogito
-apt-get install git-arch git-cvs git-email git-daemon-run gitk gitweb git-core
+apt-get remove -y --force-yes git-arch git-cvs git-email git-daemon-run gitk gitweb cogito
+apt-get install -y --force-yes git-arch git-cvs git-email git-daemon-run gitk gitweb git-core
 
