@@ -251,6 +251,9 @@ fi
 UMASK=$(umask)
 umask 077
 cd ${WORKDIR}
+cp ${ROOT_CA}/ca_trust_chain.crt /etc/vault
+if [ ! -d /var/www/ ];then mkdir /var/www;fi
+cp ${ROOT_CA}/ca_trust_chain.crt /var/www/cacert.crt
 secret | gpg -e -a -r ${PGP_KEYID} > /etc/vault/passphrase.gpg
 tar cvzf - root_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/root_ca.gpg 
 rm -fr root_ca
@@ -262,8 +265,6 @@ chmod 600 /etc/vault/*
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/apache2/ssl
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/apache2/ssl
 umask ${UMASK}
-cp ${ROOT_CA}/ca_trust_chain.crt /etc/vault
-cp ${ROOT_CA}/ca_trust_chain.crt /var/www/cacert.crt
 rm -fr ${WORKDIR}
 
 exit 1;
