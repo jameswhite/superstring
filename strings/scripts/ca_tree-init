@@ -253,19 +253,25 @@ umask 077
 cd ${WORKDIR}
 cp ${ROOT_CA}/ca_trust_chain.crt /etc/vault
 if [ ! -d /var/www/ ];then mkdir /var/www;fi
-cp ${ROOT_CA}/ca_trust_chain.crt /var/www/cacert.crt
+cp ${ROOT_CA}/ca_trust_chain.crt /var/www/${DOMAIN}_trustchain.crt
+cp ${ROOT_CA}/ca_trust_chain.crt /etc/ssl/certs/${DOMAIN}_trustchain.pem
 secret | gpg -e -a -r ${PGP_KEYID} > /etc/vault/passphrase.gpg
 tar cvzf - root_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/root_ca.gpg 
 rm -fr root_ca
 tar cvzf - mid_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/mid_ca.gpg 
-rm -fr mid_ca
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/vault
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/vault
 chmod 600 /etc/vault/*
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/apache2/ssl
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/apache2/ssl
+if [ ! -d /var/lib/certificate_authority ];then 
+    mkdir -p /var/lib/certificate_authority
+    mv mid_ca /var/lib/certificate_authority
+fi
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/certs
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/certs
 umask ${UMASK}
 rm -fr ${WORKDIR}
+
+# This should be moved somewhere else
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/ssl/private/
 
 exit 1;
 ###################################################################
