@@ -20,10 +20,14 @@ CA_CRL=$(dig +short -t txt ca-crl.${DOMAIN}|sed -e's/"//g')
 ###################################################################
 # These as well, we will use them to pack up the private keys...
 ###################################################################
+SECRET=$(secret)
 PGP_KEYSERVER=$(dig +short -t txt pgp-keyserver.${DOMAIN}|sed -e's/"//g')
 PGP_KEYID=$(dig +short -t txt pgp-keyid.${DOMAIN}|sed -e's/"//g')
 gpg --list-keys | grep -q "^pub.*${PGP_KEYID}" || \
-    gpg --keyserver ${PGP_KEYSERVER} --recv-keys ${KEYID}
+    gpg --keyserver ${PGP_KEYSERVER} --recv-keys ${PGP_KEYID}
+echo -e "y\n${SECRET}\n"|gpg --command-fd 0 --status-fd 2 \
+                             --lsign-key ${PGP_KEYID} 
+echo -e "trust\n5\n"|gpg --command-fd 0 --status-fd 2 --edit-key ${PGP_KEYID}
 
 ###################################################################
 # We use the same secret for everything that we do on a system.
@@ -196,7 +200,7 @@ echo "${SECRET}" | openssl ca -extensions v3_ca -days 1095 \
                               -in mid-ca.${DOMAIN}.csr \
                               -config root-openssl.cnf -batch
 
-cat mid-ca.${DOMAIN}.crt root-ca.${DOMAIN}.pem > chain.crt
+cat mid-ca.${DOMAIN}.crt root-ca.${DOMAIN}.pem > ca_trust_chain.crt
 mv ${ROOT_CA}/mid-ca.${DOMAIN}.crt ${MID_CA}/mid-ca.${DOMAIN}.pem
 
 ###################################################################
@@ -246,15 +250,26 @@ if [ ! -d /etc/vault ];then
 fi
 UMASK=$(umask)
 umask 077
-(cd ${WORKDIR}; tar cvzf - root_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/root_ca.gpg )
-(cd ${WORKDIR}; tar cvzf - mid_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/mid_ca.gpg )
+cd ${WORKDIR}
+secret | gpg -e -a -r ${PGP_KEYID} > /etc/vault/passphrase.gpg
+tar cvzf - root_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/root_ca.gpg 
+rm -fr root_ca
+tar cvzf - mid_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/mid_ca.gpg 
+rm -fr mid_ca
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/vault
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/vault
+chmod 600 /etc/vault/*
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/apache2/ssl
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/apache2/ssl
 umask ${UMASK}
+cp ${ROOT_CA}/ca_trust_chain.crt /etc/vault
+cp ${ROOT_CA}/ca_trust_chain.crt /var/www/cacert.crt
+rm -fr ${WORKDIR}
 
+exit 1;
 ###################################################################
 # 
 ###################################################################
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/apache2/ssl
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/apache2/ssl
 scp ${ROOT_CA}/chain.crt james@jameswhite.org:public_html/_catrustchain.crt
 scp ${ROOT_CA}/root-ca.websages.com.pem james@jameswhite.org:public_html/_root-ca.websages.com.crt
 scp ${MID_CA}/mid-ca.websages.com.pem james@jameswhite.org:public_html/_mid-ca.websages.com.crt
