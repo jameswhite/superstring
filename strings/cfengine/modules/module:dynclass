@@ -42,6 +42,7 @@ use Sys::Hostname::Long;
     bless ($self, $class);
     $self->{'cfg'}->{'fqdn'} = hostname_long();
     $self->{'cfg'}->{'hostname'} = hostname();
+    $self->{'cfg'}->{'hostname'}=~s/\..*//g;
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
     push(@{ $self->{'cfclasses'} },'base');
