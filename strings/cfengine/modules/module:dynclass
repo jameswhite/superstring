@@ -45,7 +45,6 @@ use Sys::Hostname::Long;
     $self->{'cfg'}->{'hostname'}=~s/\..*//g;
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
-    push(@{ $self->{'cfclasses'} },'base');
     if($self->{'cfg'}->{'domain'} ne ""){ 
         return $self;
     }
@@ -109,6 +108,14 @@ use Net::DNS;
     return $self;
 }
 
+sub add_classes(){
+    my $self=shift;
+    foreach my $c (@_){
+        push(@{ $self->{'cfclasses'} }, $c);
+    }
+    return $self;
+}
+
 sub dumpclasses(){
     my $self=shift;
     foreach my $c (@{ $self->{'cfclasses'} }){
@@ -154,6 +161,20 @@ sub fqdomain{
 # Attempt to contact all the LDAP Servers 
 #     and get this hosts LDAP record
 ###################################################
+sub ldapsearch{
+use Net::LDAP;
+    my $self=shift;
+    my $setup=shift;
+    my $returnlist;
+    my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
+    my $mesg = $ldap->bind ;    # an anonymous bind
+    $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
+    $mesg->code && warn $mesg->error;
+    foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
+    $mesg = $ldap->unbind;   # take down session
+    return [$returnlist];
+}
+ 
 sub host_ldap_record(){
     my $self=shift;
     my $host=shift;
@@ -170,33 +191,18 @@ sub host_ldap_record(){
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
         $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
     }
-    if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
+    if(!defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
         foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
             next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})));
             print STDERR "Searching for $searchdn via ldap://".$ldap_server.":389\n";
             $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$ldap_server,'basedn'=>$basedn,'search'=>$searchdn});
+            if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){ print STDERR "$searchdn found.\n"; }
         }
     }
     return $self;
 }
 
-sub ldapsearch{
-use Net::LDAP;
-    my $self=shift;
-    my $setup=shift;
-    my $returnlist;
-    my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
-    my $mesg = $ldap->bind ;    # an anonymous bind
-print STDERR "base => $setup->{'basedn'}, filter => \"($setup->{'search'})\"\n";
-    $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
-    $mesg->code && warn $mesg->error;
-    foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
-    $mesg = $ldap->unbind;   # take down session
-    return [$returnlist];
-}
-
- 
 1;
 
 my $ss = Superstring->new();
@@ -204,12 +210,22 @@ if($ss){
     $ss->get_dns_records();
     if(defined($ss->ldap_servers())){
         $ss->host_ldap_record($ss->fqdomain());
-        #print Data::Dumper->Dump([$ss->host_ldap_record($ss->fqdomain())]) 
-        #    if defined($ss->host_ldap_record($ss->fqdomain()));
+        foreach my $records ( @{ $ss->{'cfg'}->{'ldap'}->{'hostrecord'} }){
+            foreach my $entry ( @{ $records }){
+                foreach my $attr ( $entry->attributes ){
+                    if($attr =~ /^vennClass$/i){
+                        $ss->add_classes($entry->get_value( $attr ));
+                    }
+                    if($attr =~ /^vennbase$/i){
+                        $ss->add_classes($entry->get_value( $attr ));
+                    }
+                }
+            }
+        }
     }else{
         print "No ldap server SRV records found in DNS\n";
     }
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
-exit;
+#print Data::Dumper->Dump([$ss]);
