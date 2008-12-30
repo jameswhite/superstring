@@ -1,4 +1,11 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
+#
+# We use /usr/local/bin/perl because cygwin installs in /usr/bin/perl and we want to
+# use ActiveState Perl on Windows. As a result, we have to symlink all others
+# links:
+#     !compiled_on_cygwin::
+#         /usr/local/bin/perl -> /usr/bin/perl type=symbolic
+#
 use strict;
 # This is the LDAP module that makes all the dynamic stuff in cfengine work
 # determine this host's fqdn
@@ -28,7 +35,6 @@ use strict;
 # if no ldap servers are reachable and the fqdn is not in the ldap_tls_389 srv list,
 #     then take no action; Assume the host is disconnected from the core completely.
 #
-# if 
 
 package Superstring;
 use Data::Dumper;
