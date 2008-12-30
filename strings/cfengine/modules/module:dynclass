@@ -225,6 +225,7 @@ if($ss){
     }else{
         print "No ldap server SRV records found in DNS\n";
     }
+    binmode STDOUT;
     $ss->dumpclasses();
     $ss->dumpvariables();
 }
