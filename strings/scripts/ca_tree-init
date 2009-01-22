@@ -270,8 +270,8 @@ if [ ! -d /var/lib/certificate_authority ];then
     mkdir -p /var/lib/certificate_authority
     mv mid_ca /var/lib/certificate_authority
 fi
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/certs
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/certs
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/mid_ca/certs
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/mid_ca/certs
 umask ${UMASK}
 
 # This should be moved somewhere else
