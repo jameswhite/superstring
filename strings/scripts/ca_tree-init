@@ -5,12 +5,10 @@ rm -fr /dev/shm/certificate.*
 ###################################################################
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/usr/local/sbin:/sbin"
 for elf in `echo "dig openssl gpg"`; do 
-    if [ -z $(which ${elf} ];then 
+    if [ -z $(which ${elf}) ];then 
         echo "${elf} not found. Aborting...";
         exit -1
     fi    
-
-
 ###################################################################
 # These need to be set up in DNS (and this should be documented)
 ###################################################################
