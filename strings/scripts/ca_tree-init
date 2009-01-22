@@ -274,6 +274,8 @@ if [ ! -d /var/lib/certificate_authority ];then
     mkdir -p /var/lib/certificate_authority
 fi
 mv mid_ca /var/lib/certificate_authority
+find /var/lib/certificate_authority -type d -exec chmod 700 {} \;
+find /var/lib/certificate_authority -type f -exec chmod 600 {} \;
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/mid_ca/certs
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/mid_ca/certs
 
