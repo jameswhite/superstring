@@ -2,6 +2,7 @@
 rm -fr /dev/shm/certificate.*
 ###################################################################
 # Requires: gpg-init, secret-init, rotate-secret
+# dpkg: dns-browse openssl gpg
 ###################################################################
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/usr/local/sbin:/sbin"
 for elf in `echo "dig openssl gpg"`; do 
@@ -272,12 +273,12 @@ fi
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/certs
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/certs
 umask ${UMASK}
-rm -fr ${WORKDIR}
 
 # This should be moved somewhere else
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/ssl/private/
 
+rm -fr ${WORKDIR}
 exit 1;
 ###################################################################
 # 
