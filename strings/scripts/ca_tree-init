@@ -12,7 +12,7 @@ for elf in `echo "dig openssl gpg"`; do
     fi    
 done
 if [ -d /var/lib/certificate_authority/mid_ca ];then 
-    echo "I've already got a pki infrastructure"
+    echo "I've already got a pki infrastructure... Aborting"
     exit 0;
 fi
 ###################################################################
@@ -216,7 +216,7 @@ mv ${ROOT_CA}/mid-ca.${DOMAIN}.crt ${MID_CA}/mid-ca.${DOMAIN}.pem
 ###################################################################
 # Create Server Certificate for self
 ###################################################################
-HNAME=$(hostname)
+HNAME=$(hostname -s)
 if [ -z ${HNAME} ];then
     echo "hostname -f doesn't return the hostname"
     exit
