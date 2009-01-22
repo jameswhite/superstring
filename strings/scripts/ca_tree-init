@@ -9,6 +9,7 @@ for elf in `echo "dig openssl gpg"`; do
         echo "${elf} not found. Aborting...";
         exit -1
     fi    
+done
 ###################################################################
 # These need to be set up in DNS (and this should be documented)
 ###################################################################
