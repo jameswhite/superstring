@@ -11,6 +11,10 @@ for elf in `echo "dig openssl gpg"`; do
         exit -1
     fi    
 done
+if [ -d /var/lib/certificate_authority/mid_ca ];then 
+    echo "I've already got a pki infrastructure"
+    exit 0;
+fi
 ###################################################################
 # These need to be set up in DNS (and this should be documented)
 ###################################################################
@@ -272,17 +276,17 @@ if [ ! -d /var/lib/certificate_authority ];then
 fi
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/mid_ca/certs
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/mid_ca/certs
-umask ${UMASK}
 
-# This should be moved somewhere else
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/ssl/private/
+umask ${UMASK}
 
 rm -fr ${WORKDIR}
 exit 1;
 ###################################################################
 # 
 ###################################################################
+# This should be moved somewhere else
+/bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
+/bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.key /etc/ssl/private/
 scp ${ROOT_CA}/chain.crt james@jameswhite.org:public_html/_catrustchain.crt
 scp ${ROOT_CA}/root-ca.websages.com.pem james@jameswhite.org:public_html/_root-ca.websages.com.crt
 scp ${MID_CA}/mid-ca.websages.com.pem james@jameswhite.org:public_html/_mid-ca.websages.com.crt
