@@ -272,8 +272,8 @@ tar cvzf - mid_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/mid_ca.gpg
 chmod 600 /etc/vault/*
 if [ ! -d /var/lib/certificate_authority ];then 
     mkdir -p /var/lib/certificate_authority
-    mv mid_ca /var/lib/certificate_authority
 fi
+mv mid_ca /var/lib/certificate_authority
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/mid_ca/certs
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/mid_ca/certs
 
