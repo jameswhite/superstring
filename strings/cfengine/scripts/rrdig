@@ -14,7 +14,7 @@ byip=0
 while [ -n "$1" ]; do
     case $1 in
         -h) usage;shift 1;break;;
-        -i) byip=1;shift 1;break;;
+        -i) byip=1;shift 1;;
         -*) n=$(echo $1|sed -e 's/-//');shift 1;;
         --) shift;break;; # end of options
          *) rr_record=$1;break;;
