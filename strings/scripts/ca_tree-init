@@ -288,6 +288,7 @@ exit 1;
 ###################################################################
 # This should be moved somewhere else
 /bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
+/bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
 /bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.key /etc/ssl/private/
 scp ${ROOT_CA}/chain.crt james@jameswhite.org:public_html/_catrustchain.crt
 scp ${ROOT_CA}/root-ca.websages.com.pem james@jameswhite.org:public_html/_root-ca.websages.com.crt
