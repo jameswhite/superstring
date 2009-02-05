@@ -2,9 +2,19 @@
 rm -fr /dev/shm/certificate.*
 ###################################################################
 # Requires: gpg-init, secret-init, rotate-secret
+# dpkg: dns-browse openssl gpg
 ###################################################################
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/usr/local/sbin:/sbin"
-
+for elf in `echo "dig openssl gpg"`; do 
+    if [ -z $(which ${elf}) ];then 
+        echo "${elf} not found. Aborting...";
+        exit -1
+    fi    
+done
+if [ -d /var/lib/certificate_authority/mid_ca ];then 
+    echo "I've already got a pki infrastructure... Aborting"
+    exit 0;
+fi
 ###################################################################
 # These need to be set up in DNS (and this should be documented)
 ###################################################################
@@ -206,7 +216,7 @@ mv ${ROOT_CA}/mid-ca.${DOMAIN}.crt ${MID_CA}/mid-ca.${DOMAIN}.pem
 ###################################################################
 # Create Server Certificate for self
 ###################################################################
-HNAME=$(hostname)
+HNAME=$(hostname -s)
 if [ -z ${HNAME} ];then
     echo "hostname -f doesn't return the hostname"
     exit
@@ -262,21 +272,23 @@ tar cvzf - mid_ca|gpg -e -a -r ${PGP_KEYID} > /etc/vault/mid_ca.gpg
 chmod 600 /etc/vault/*
 if [ ! -d /var/lib/certificate_authority ];then 
     mkdir -p /var/lib/certificate_authority
-    mv mid_ca /var/lib/certificate_authority
 fi
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/certs
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/certs
+mv mid_ca /var/lib/certificate_authority
+find /var/lib/certificate_authority -type d -exec chmod 700 {} \;
+find /var/lib/certificate_authority -type f -exec chmod 600 {} \;
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /var/lib/certificate_authority/mid_ca/certs
+/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /var/lib/certificate_authority/mid_ca/certs
+
 umask ${UMASK}
+
 rm -fr ${WORKDIR}
-
-# This should be moved somewhere else
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
-/bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/ssl/private/
-
 exit 1;
 ###################################################################
 # 
 ###################################################################
+# This should be moved somewhere else
+/bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/
+/bin/cp /var/lib/certificate/mid_ca/certs/${HNAME}.${DOMAIN}.key /etc/ssl/private/
 scp ${ROOT_CA}/chain.crt james@jameswhite.org:public_html/_catrustchain.crt
 scp ${ROOT_CA}/root-ca.websages.com.pem james@jameswhite.org:public_html/_root-ca.websages.com.crt
 scp ${MID_CA}/mid-ca.websages.com.pem james@jameswhite.org:public_html/_mid-ca.websages.com.crt
