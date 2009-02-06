@@ -34,7 +34,7 @@ if [ -f /etc/debian_version ]; then
                           libnet-dns-perl libnet-ldap-perl > /dev/null 2>&1
    fi
 fi
-MASTERFILES=${CFROOT}/${MASTERFILES}
+MASTERFILES=${CFROOT}/masterfiles
 if [ ! -z ${dirname} ]; then MASTERFILES=${dirname}; fi
 
 ########################
