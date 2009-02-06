@@ -199,6 +199,7 @@ sub host_ldap_record(){
         # get host record from our self
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
         $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
+        print Data::Dumper->Dump([$self->{'cfg'}->{'ldap'}->{'hostrecord'}]);
     }
     if(!defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
         foreach my $ldap_server (@{$self->ldap_servers}){
@@ -222,10 +223,10 @@ if($ss){
         foreach my $records ( @{ $ss->{'cfg'}->{'ldap'}->{'hostrecord'} }){
             foreach my $entry ( @{ $records }){
                 foreach my $attr ( $entry->attributes ){
-                    if($attr =~ /^vennClass$/i){
+                    if($attr =~ /^configSet$/i){
                         $ss->add_classes($entry->get_value( $attr ));
                     }
-                    if($attr =~ /^vennbase$/i){
+                    if($attr =~ /^configBase$/i){
                         $ss->add_classes($entry->get_value( $attr ));
                     }
                 }
