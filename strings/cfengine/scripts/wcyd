@@ -1,0 +1,32 @@
+#!/bin/bash
+#if [ $UID -ne 0 ] || (echo "Be you root."; exit)
+PACK=0
+CFROOT="/var/cfengine";
+while [ -n "$1" ]; do
+    case $1 in
+        -p) PACK=1;shift 1;;
+        -f) filename=$2;shift 2;;
+        --) shift;break;; # end of options
+         *) echo "Unknown Option $1";break;;
+    esac
+done
+if [ ${PACK} -eq 0 ];then
+    ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0)
+    if [ -f /etc/debian_version ]; then
+        CFROOT="/var/lib/cfengine2";
+        apt-get install -y metamail tar cfengine2 libsys-hostname-long-perl \
+                           libnet-dns-perl libnet-ldap-perl 
+    fi
+    if [ ! -d ${CFROOT}/masterfiles ]; then mkdir -p ${CFROOT}/masterfiles; fi
+    tail -n+$ARCHIVE $0 | mimencode -u | tar xz -C $CFROOT}/masterfiles/
+else
+    ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR; exit 0; }' $0)
+    head -$ARCHIVE $0
+    if [ -z ${filename} ];then
+        (cd ${CFROOT}/masterfiles;tar czf {modules,inputs,config,scripts}|mimencode)
+    else
+        (cd ${CFROOT}/masterfiles;tar czf {modules,inputs,config,scripts}|mimencode) > ${filename}
+    fi
+fi
+exit 0
+__ARCHIVE_BELOW__

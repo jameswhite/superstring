@@ -79,6 +79,7 @@ packages:
         screen                 action=install
         ntp-simple             action=install
         ntpdate                action=install
+        sharutils              action=install
         sudo                   action=install
         strace                 action=install
         syslog-ng              action=install

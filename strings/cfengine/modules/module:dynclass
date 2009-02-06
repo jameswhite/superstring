@@ -21,11 +21,16 @@ use strict;
 #        if record is not found, back-off and retry on next pass. 
 #     if none of the ldap servers can be reached, including oneself then assume localhost
 #        is the first of it's kind and:
-#            activate core_server
+#            activate core_server, which will:
+#                activate cfengine_server
+#                    (if debian) update /etc/apt/sources.list to use backports
+#                    (if debian) create /etc/apt/preferences to mask backports for !git
+#                    install git
+#                    install git2masterfiles
 #                activate certificate_authority
 #                    using "secret" create caroot tree
 #                    using "secret" create gpg identity
-#                activate ldap_server
+#                activate ldap_server, which will:
 #                    add slapd.conf for self's domain name (determined earlier) if not exists
 #                    start slapd, 
 #                    create self's host record if it doesn't exist, 
@@ -208,8 +213,8 @@ sub host_ldap_record(){
             if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){ print STDERR "$searchdn found.\n"; }
         }
     }
-    if(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} )){ 
-        $self->add_classes("all_alone");
+    if(($iamone eq 1)&&(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} ))){ 
+        $self->add_classes("core_server");
     }
     return $self;
 }
