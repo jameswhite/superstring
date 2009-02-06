@@ -23,9 +23,9 @@ else
     ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR; exit 0; }' $0)
     head -$ARCHIVE $0
     if [ -z ${filename} ];then
-        (cd ${CFROOT}/masterfiles;tar czf {modules,inputs,config,scripts}|mimencode)
+        (cd ${CFROOT}/masterfiles;tar czf - {modules,inputs,config,scripts}|mimencode)
     else
-        (cd ${CFROOT}/masterfiles;tar czf {modules,inputs,config,scripts}|mimencode) > ${filename}
+        (cd ${CFROOT}/masterfiles;tar czf - {modules,inputs,config,scripts}|mimencode) > ${filename}
     fi
 fi
 exit 0
