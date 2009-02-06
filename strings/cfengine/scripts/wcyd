@@ -18,7 +18,7 @@ done
 if [ ${PACK} -eq 0 ];then
     ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0)
     if [ ! -d ${CFROOT}/masterfiles ]; then mkdir -p ${CFROOT}/masterfiles; fi
-    tail -n+$ARCHIVE $0 | mimencode -u | tar xz -C $CFROOT}/masterfiles/
+    tail -n+$ARCHIVE $0 | mimencode -u | tar xz -C ${CFROOT}/masterfiles/
 else
     ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR; exit 0; }' $0)
     if [ -z ${filename} ];then
