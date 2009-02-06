@@ -1,0 +1,6 @@
+control:
+    actionsequence          = ( processes )
+
+processes:
+        "cfservd" restart "/usr/sbin/cfservd"
+
