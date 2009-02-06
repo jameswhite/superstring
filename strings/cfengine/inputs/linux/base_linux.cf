@@ -3,7 +3,7 @@ control:
     debian::
         DefaultPkgMgr         = ( dpkg )
         pkgmgr                = ( dpkg )
-        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
+        DPKGInstallCommand    = ( "echo %s | xargs --max-args 20 /usr/bin/apt-get -y install \{\} \;" )
         AddInstallable        = ( update_apt )
 
 files:
@@ -74,11 +74,11 @@ copy:
 
 packages:
     debian::
-        less                   action=install
-        file                   action=install
-        screen                 action=install
-        ntp-simple             action=install
-        ntpdate                action=install
+        less                   action=install 
+        file                   action=install 
+        screen                 action=install 
+        ntp-simple             action=install 
+        ntpdate                action=install 
         sharutils              action=install
         sudo                   action=install
         strace                 action=install
