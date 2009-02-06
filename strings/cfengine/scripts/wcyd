@@ -2,6 +2,11 @@
 #if [ $UID -ne 0 ] || (echo "Be you root."; exit)
 PACK=0
 CFROOT="/var/cfengine";
+if [ -f /etc/debian_version ]; then
+   CFROOT="/var/lib/cfengine2";
+   apt-get install -y metamail tar cfengine2 libsys-hostname-long-perl \
+                      libnet-dns-perl libnet-ldap-perl > /dev/null 2>&1
+fi
 while [ -n "$1" ]; do
     case $1 in
         -p) PACK=1;shift 1;;
@@ -12,11 +17,6 @@ while [ -n "$1" ]; do
 done
 if [ ${PACK} -eq 0 ];then
     ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0)
-    if [ -f /etc/debian_version ]; then
-        CFROOT="/var/lib/cfengine2";
-        apt-get install -y metamail tar cfengine2 libsys-hostname-long-perl \
-                           libnet-dns-perl libnet-ldap-perl 
-    fi
     if [ ! -d ${CFROOT}/masterfiles ]; then mkdir -p ${CFROOT}/masterfiles; fi
     tail -n+$ARCHIVE $0 | mimencode -u | tar xz -C $CFROOT}/masterfiles/
 else
