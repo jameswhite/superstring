@@ -2,4 +2,4 @@ control:
         actionsequence          = ( shellcommands )
 shellcommands:
     vpn_router::
-        /bin/echo "I need ipsec,gre,and ospf"
+        "/bin/echo \"I need ipsec,gre,and ospf\""
