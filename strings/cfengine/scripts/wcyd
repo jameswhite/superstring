@@ -21,11 +21,12 @@ if [ ${PACK} -eq 0 ];then
     tail -n+$ARCHIVE $0 | mimencode -u | tar xz -C $CFROOT}/masterfiles/
 else
     ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR; exit 0; }' $0)
-    head -$ARCHIVE $0
     if [ -z ${filename} ];then
+        head -$ARCHIVE $0
         (cd ${CFROOT}/masterfiles;tar czf - {modules,inputs,config,scripts}|mimencode)
     else
-        (cd ${CFROOT}/masterfiles;tar czf - {modules,inputs,config,scripts}|mimencode) > ${filename}
+        head -$ARCHIVE $0 > ${filename}
+        (cd ${CFROOT}/masterfiles;tar czf - {modules,inputs,config,scripts}|mimencode) >> ${filename}
     fi
 fi
 exit 0
