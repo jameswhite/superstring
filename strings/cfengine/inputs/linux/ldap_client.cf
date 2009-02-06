@@ -1,0 +1,43 @@
+control:
+    actionsequence   = ( packages copy processes editfiles )
+ 
+packages:
+    ldap_server::
+        slapd            action=install
+ 
+    ldap_client::
+        nscd             action=install
+        libnss-ldap      action=install
+        libpam-ldap      action=install
+        ldap-utils       action=install
+ 
+editfiles:
+
+copy:
+    ldap_server.debian::
+        $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+ 
+    ldap_client.debian::
+        $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
+        server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian__common-account dest=/etc/pam.d/common-account
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian__common-password dest=/etc/pam.d/common-password
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/pam.d/debian__common-session dest=/etc/pam.d/common-session
+            server=$(policyhost) type=sum owner=root group=root mode=0440
+ 
+        $(configroot)/linux/etc/debian__nsswitch.conf dest=/etc/nsswitch.conf
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+ 
+processes:
+    ldap_server::
+      "slapd"      restart "/etc/init.d/slapd restart"
+ 
+    ldap_client::
+        "nscd"      restart "/etc/init.d/nscd restart"
+ 
