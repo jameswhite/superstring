@@ -75,7 +75,6 @@ copy:
 packages:
     debian::
         less                   action=install
-        autodir                action=install
         file                   action=install
         screen                 action=install
         ntp-simple             action=install

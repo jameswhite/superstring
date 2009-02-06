@@ -162,7 +162,6 @@ sub fqdomain{
     return undef;
 }
 
-
 ###################################################
 # Attempt to contact all the LDAP Servers 
 #     and get this hosts LDAP record
@@ -208,6 +207,9 @@ sub host_ldap_record(){
             $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$ldap_server,'basedn'=>$basedn,'search'=>$searchdn});
             if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){ print STDERR "$searchdn found.\n"; }
         }
+    }
+    if(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} )){ 
+        $self->add_classes("all_alone");
     }
     return $self;
 }
