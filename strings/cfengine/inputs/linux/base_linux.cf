@@ -3,8 +3,8 @@ control:
     debian::
         DefaultPkgMgr         = ( dpkg )
         pkgmgr                = ( dpkg )
-        DPKGInstallCommand    = ( "echo %s | xargs --max-args 20 /usr/bin/apt-get -y install \{\} \;" )
-        AddInstallable        = ( update_apt )
+        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
+        AddInstallable        = ( update_apt need_base_linux_packages )
 
 files:
     debian:: 
@@ -74,22 +74,22 @@ copy:
 
 packages:
     debian::
-        less                   action=install 
-        file                   action=install 
-        screen                 action=install 
-        ntp-simple             action=install 
-        ntpdate                action=install 
-        sharutils              action=install
-        sudo                   action=install
-        strace                 action=install
-        syslog-ng              action=install
-        subversion             action=install
-        vim                    action=install
-        iptables               action=install
-        rsync                  action=install
-        ca-certificates        action=install
-        cron-apt               action=install
-        libnet-ldap-perl       action=install 
+        less                   action=install elsedefine=need_base_linux_packages
+        file                   action=install elsedefine=need_base_linux_packages
+        screen                 action=install elsedefine=need_base_linux_packages
+        ntp-simple             action=install elsedefine=need_base_linux_packages
+        ntpdate                action=install elsedefine=need_base_linux_packages
+        sharutils              action=install elsedefine=need_base_linux_packages
+        sudo                   action=install elsedefine=need_base_linux_packages
+        strace                 action=install elsedefine=need_base_linux_packages
+        syslog-ng              action=install elsedefine=need_base_linux_packages
+        subversion             action=install elsedefine=need_base_linux_packages
+        vim                    action=install elsedefine=need_base_linux_packages
+        iptables               action=install elsedefine=need_base_linux_packages
+        rsync                  action=install elsedefine=need_base_linux_packages
+        ca-certificates        action=install elsedefine=need_base_linux_packages
+        cron-apt               action=install elsedefine=need_base_linux_packages
+        libnet-ldap-perl       action=install elsedefine=need_base_linux_packages
 
 processes:
     debian::
@@ -108,4 +108,5 @@ shellcommands:
          "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
      update_apt::
         "/usr/bin/apt-get update"
-
+     need_base_linux_packages::
+        "/usr/bin/apt-get -y install less file screen ntp-simple ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
