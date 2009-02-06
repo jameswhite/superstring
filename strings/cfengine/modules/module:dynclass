@@ -173,11 +173,14 @@ use Net::LDAP;
     my $setup=shift;
     my $returnlist;
     my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
-    my $mesg = $ldap->bind ;    # an anonymous bind
-    $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
-    $mesg->code && warn $mesg->error;
-    foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
-    $mesg = $ldap->unbind;   # take down session
+    my $mesg;
+    if($ldap){
+        $mesg = $ldap->bind ;    # an anonymous bind
+        $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
+        $mesg->code && warn $mesg->error;
+        foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
+        $mesg = $ldap->unbind;   # take down session
+    }
     return [$returnlist];
 }
  
