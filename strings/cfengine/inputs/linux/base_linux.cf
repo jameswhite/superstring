@@ -104,6 +104,8 @@ tidy:
         /var/lib/cfengine2/inputs    pat=.#*        r=inf    age=1
 
 shellcommands:
+     debian::
+         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
      update_apt::
         "/usr/bin/apt-get update"
 
