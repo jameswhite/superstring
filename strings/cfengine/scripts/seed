@@ -52,6 +52,7 @@ else
     else
         head -$ARCHIVE $0 > ${filename}
         (cd ${MASTERFILES};tar czf - .|mimencode) >> ${filename}
+        chmod 744 ${filename}
     fi
 fi
 ################################################################################
