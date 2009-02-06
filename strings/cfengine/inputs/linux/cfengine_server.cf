@@ -1,5 +1,5 @@
 control:
-        actionsequence          = ( copy editfiles processes shellcommands )
+        actionsequence          = ( copy editfiles packages processes shellcommands )
 
 copy:
     linux.cfengine_server::
