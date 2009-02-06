@@ -201,7 +201,6 @@ sub host_ldap_record(){
         $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
     }
     if(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} )){
-        print Data::Dumper->Dump([$self->{'cfg'}->{'ldap'}->{'hostrecord'}]);
         foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
             next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})));
