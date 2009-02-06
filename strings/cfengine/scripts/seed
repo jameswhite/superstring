@@ -29,8 +29,10 @@ done
 CFROOT="/var/cfengine";
 if [ -f /etc/debian_version ]; then
    CFROOT="/var/lib/cfengine2";
-   apt-get install -y metamail tar cfengine2 libsys-hostname-long-perl \
-                      libnet-dns-perl libnet-ldap-perl > /dev/null 2>&1
+   if [ -z $(which tar) -o -z $(which mimencode) ]; then
+       apt-get install -y metamail tar cfengine2 libsys-hostname-long-perl \
+                          libnet-dns-perl libnet-ldap-perl > /dev/null 2>&1
+   fi
 fi
 MASTERFILES=${CFROOT}/${MASTERFILES}
 if [ ! -z ${dirname} ]; then MASTERFILES=${dirname}; fi
