@@ -8,4 +8,3 @@ ACCEPT $FW net icmp
 # Allow ssh from anywhere
 ACCEPT net $FW tcp 22
 #LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
-EOSWR

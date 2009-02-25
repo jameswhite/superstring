@@ -2,4 +2,3 @@
 #ZONE INTERFACE BROADCAST OPTIONS
 net eth0 detect norfc1918,routefilter,dhcp,tcpflags,logmartians,nosmurfs
 #LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
-EOSWI
