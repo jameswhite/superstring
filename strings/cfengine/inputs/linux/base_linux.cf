@@ -4,7 +4,7 @@ control:
         DefaultPkgMgr         = ( dpkg )
         pkgmgr                = ( dpkg )
         DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
-        AddInstallable        = ( update_apt need_base_linux_packages )
+        AddInstallable        = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
 
 files:
     debian:: 
@@ -88,7 +88,6 @@ packages:
         less                   action=install elsedefine=need_base_linux_packages
         file                   action=install elsedefine=need_base_linux_packages
         screen                 action=install elsedefine=need_base_linux_packages
-        ntp-simple             action=install elsedefine=need_base_linux_packages
         ntpdate                action=install elsedefine=need_base_linux_packages
         sharutils              action=install elsedefine=need_base_linux_packages
         sudo                   action=install elsedefine=need_base_linux_packages
@@ -101,6 +100,13 @@ packages:
         ca-certificates        action=install elsedefine=need_base_linux_packages
         cron-apt               action=install elsedefine=need_base_linux_packages
         libnet-ldap-perl       action=install elsedefine=need_base_linux_packages
+
+    debian_4::
+        ntp-simple             action=install elsedefine=need_base_debian_4_packages
+
+    debian_5::
+        ntp                    action=install elsedefine=need_base_debian_5_packages
+        ntpdate                action=install elsedefine=need_base_debian_5_packages
 
 processes:
     debian::
@@ -119,7 +125,14 @@ shellcommands:
      update_apt::
         "/usr/bin/apt-get update"
      need_base_linux_packages::
-        "/usr/bin/apt-get -y install less file screen ntp-simple ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
+        "/usr/bin/apt-get -y install less file screen ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
+
+    need_base_debian_4_packages::
+        "/usr/bin/apt-get -y install ntp-simple"
+
+    need_base_debian_5_packages::
+        "/usr/bin/apt-get -y install ntp ntpdate"
 
     debian_4::
          "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
+
