@@ -70,10 +70,17 @@ copy:
             server=$(policyhost) type=sum owner=root group=root mode=0755
 
     debian_4::
-        $(configroot)/linux/etc/apt/preferences dest=/etc/apt/preferences
+        $(configroot)/linux/etc/apt/debian_4__preferences dest=/etc/apt/preferences
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
-        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
+        $(configroot)/linux/etc/apt/debian_4__sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+    debian_5::
+        $(configroot)/linux/etc/apt/debian_5__preferences dest=/etc/apt/preferences
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+        $(configroot)/linux/etc/apt/debian_5__sources.list dest=/etc/apt/sources.list
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
 packages:
