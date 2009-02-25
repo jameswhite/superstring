@@ -10,6 +10,7 @@ files:
         /var/lib/certificate_authority owner=root group=root mode=0700 act=fixall r=inf
         /root/.gnupg                   owner=root group=root mode=0700 act=fixall r=inf
 
+copy:
     linux.core_server::
         $(configroot)/linux/usr/local/sbin/secret-init  dest=/usr/local/sbin/secret-init
          mode=700 type=binary server=$(policyhost) trustkey=true
