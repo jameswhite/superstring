@@ -137,7 +137,3 @@ shellcommands:
 
     need_base_debian_5_packages::
         "/usr/bin/apt-get -y install ntp ntpdate"
-
-import:
-    debian_5:
-        linux/shorewall.cf
