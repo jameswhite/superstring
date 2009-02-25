@@ -51,14 +51,11 @@ copy:
         $(configroot)/linux/etc/default/cfengine2 dest=/etc/default/cfengine2
             server=$(policyhost) type=sum owner=root group=root mode=0440
 
-        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
-            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
-
-        $(configroot)/linux/etc/apt/preferences dest=/etc/apt/preferences
-            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
-
         $(configroot)/linux/etc/profile dest=/etc/profile
             server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
         $(configroot)/linux/etc/ssh/moduli dest=/etc/ssh/moduli
             server=$(policyhost) type=sum owner=root group=root mode=0444
@@ -71,6 +68,13 @@ copy:
 
         $(configroot)/linux/etc/cron.weekly/apt-clean dest=/etc/cron.weekly/apt-clean
             server=$(policyhost) type=sum owner=root group=root mode=0755
+
+    debian_4::
+        $(configroot)/linux/etc/apt/preferences dest=/etc/apt/preferences
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
 packages:
     debian::
@@ -105,8 +109,10 @@ tidy:
 
 shellcommands:
      debian::
-         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
      update_apt::
         "/usr/bin/apt-get update"
      need_base_linux_packages::
         "/usr/bin/apt-get -y install less file screen ntp-simple ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
+
+    debian_4::
+         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
