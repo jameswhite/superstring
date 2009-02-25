@@ -122,8 +122,11 @@ tidy:
 
 shellcommands:
      debian::
+         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
+
      update_apt::
         "/usr/bin/apt-get update"
+
      need_base_linux_packages::
         "/usr/bin/apt-get -y install less file screen ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
 
@@ -132,7 +135,3 @@ shellcommands:
 
     need_base_debian_5_packages::
         "/usr/bin/apt-get -y install ntp ntpdate"
-
-    debian_4::
-         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
-
