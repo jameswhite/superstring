@@ -1,0 +1,41 @@
+#!some_monkey
+# To set up a "standard" linode 360 
+Register an account with Linode, Buy a Linode 360.
+From the Lindode manager tab, rename the linode with a human-parseable hostname
+Click on the linode's name in the table
+On the page that then loads: Choose "Deploy a Linux Distribution" on the page that loads
+On the page that then loads: Choose the "Debian 5.0 200 MB" option, 
+                             Select the Disk Image size to be 4096.
+                             Create a new 512 MB swap image
+                             Set the root password
+                             Click the "Create Profile" Button
+Boot the linode and make sure you can log in, the password script is wonky.
+Shut down the linode.
+
+Click on the "Debian 5.0 Disk Image" link under Disk Images, change it's label to <hostname>-root
+  (replacing "<hostname>" with what you named the host above) and save changes
+Click on the "512MB Swap Image" link under Disk Images, change it's label to <hostname>-swap
+  (replacing "<hostname>" with what you named the host above) and save changes
+Click on the "Create a new Disk Image" link and in the page that opens, 
+    Label: <hostname>-opt Size 7680 (or all remaining if different) ext3, click "Create Disk"
+Click on the Configuration Profile named "My Debian 5.0 Profile" and 
+On the page that then loads: Rename it to <hostname> in the Label input 
+                             In Drive Setup, set /dev/xdc to be <hostname>-opt
+                             Save the Profile
+
+Boot the profile.
+
+DNS:
+Log in as root get the ipaddress on eth0, add a forward record  ('A' record) for it in DNS,
+then go to Members->Linode Manager->host profile->Network->Reverse DNS, and put your hostname in.
+This will set up the reverse DNS record for this host in linodes ARPA domain.
+
+Log in as root. Fetch the singularity script and run 'singularity hostname.fqdn'
+"singularity" has been renamed "wcyd" for the moment:
+    wget -O wcyd http://wcyd.org/wcyd; chmod 755 wcyd; ./wcyd <fully.qualified.domain.name>
+
+add to singularity: 
+  - set the hostname in /etc/hostname, /etc/hosts *DONE*
+  - put the domain in /etc/mailname               *DONE*
+  - if linode:
+      - add /dev/xvdc 	/opt	ext3	defaults		0 1 to /etc/fstab
