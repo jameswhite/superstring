@@ -34,7 +34,7 @@ shellcommands:
 
      debian_5::
         "/bin/bash -c 'if [ -f /etc/init.d/shorewall.dpkg-new ];then mv /etc/init.d/shorewall.dpkg-new /etc/init.d/shorewall; fi'"
-        "bash -c 'if [ $(/sbin/iptables -L| /bin/grep .| /usr/bin/wc -l) -le 6 ];then /etc/init.d/shorewall start; fi'"
+        "/bin/bash -c 'if [ `/sbin/iptables -L| /bin/grep .| /usr/bin/wc -l` -le 6 ];then /etc/init.d/shorewall start; fi'"
 
      need_shorewall::
         "/usr/bin/apt-get -y install shorewall"
