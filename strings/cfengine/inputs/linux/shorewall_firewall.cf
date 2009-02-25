@@ -32,6 +32,8 @@ copy:
 
 shellcommands:
 
+     debian_5::
+        "/bin/bash -c 'if [ -f /etc/init.d/shorewall.dpkg-new ];then mv /etc/init.d/shorewall.dpkg-new /etc/init.d/shorewall; fi'"
      need_shorewall::
         "/usr/bin/apt-get -y install shorewall"
      bounce_shorewall::
