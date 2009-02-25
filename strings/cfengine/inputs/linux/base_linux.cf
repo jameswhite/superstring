@@ -100,6 +100,7 @@ packages:
         ca-certificates        action=install elsedefine=need_base_linux_packages
         cron-apt               action=install elsedefine=need_base_linux_packages
         libnet-ldap-perl       action=install elsedefine=need_base_linux_packages
+        git-core               action=install elsedefine=need_base_linux_packages
 
     debian_4::
         ntp-simple             action=install elsedefine=need_base_debian_4_packages
@@ -128,7 +129,7 @@ shellcommands:
         "/usr/bin/apt-get update"
 
      need_base_linux_packages::
-        "/usr/bin/apt-get -y install less file screen ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
+        "/usr/bin/apt-get -y install less file screen ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl git-core"
 
     need_base_debian_4_packages::
         "/usr/bin/apt-get -y install ntp-simple"
