@@ -6,6 +6,7 @@ control:
         DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
         AddInstallable        = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
 
+
 files:
     debian:: 
         /etc/cfengine_installed mode=0644 owner=root group=root act=touch
@@ -136,3 +137,7 @@ shellcommands:
 
     need_base_debian_5_packages::
         "/usr/bin/apt-get -y install ntp ntpdate"
+
+import:
+    debian_5:
+        linux/shorewall.cf

@@ -1,0 +1,38 @@
+control:
+    actionsequence            = ( packages copy shellcommands )
+        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
+        AddInstallable        = ( need_shorewall )
+
+packages:
+
+    debian::
+        shorewall               action=install elsedefine=need_shorewall
+
+copy:
+
+    debian_5::
+        $(configroot)/linux/etc/default/shorewall dest=/etc/default/shorewall
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+        $(configroot)/linux/etc/shorewall/shorewall.conf dest=/etc/shorewall/shorewall.conf
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+        $(configroot)/linux/etc/shorewall/interfaces dest=/etc/shorewall/interfaces
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+        $(configroot)/linux/etc/shorewall/policy dest=/etc/shorewall/policy
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+        $(configroot)/linux/etc/shorewall/rules dest=/etc/shorewall/rules
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+        $(configroot)/linux/etc/shorewall/zones dest=/etc/shorewall/zones
+            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+
+
+shellcommands:
+
+     need_shorewall::
+        "/usr/bin/apt-get -y install shorewall"
+     bounce_shorewall::
+        "/etc/init.d/shorewall restart"

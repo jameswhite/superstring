@@ -1,0 +1,11 @@
+#############################################################################################################
+#ACTION SOURCE DEST PROTO DEST SOURCE ORIGINAL RATE USER/
+# PORT PORT(S) DEST LIMIT GROUP
+# Reject Ping from the "bad" net zone.. and prevent your log from being flooded..
+Ping/REJECT net $FW
+# Permit all ICMP traffic FROM the firewall TO the net zone
+ACCEPT $FW net icmp
+# Allow ssh from anywhere
+ACCEPT net $FW tcp 22
+#LAST LINE -- ADD YOUR ENTRIES BEFORE THIS ONE -- DO NOT REMOVE
+EOSWR
