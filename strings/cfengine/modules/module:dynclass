@@ -21,11 +21,16 @@ use strict;
 #        if record is not found, back-off and retry on next pass. 
 #     if none of the ldap servers can be reached, including oneself then assume localhost
 #        is the first of it's kind and:
-#            activate core_server
+#            activate core_server, which will:
+#                activate cfengine_server
+#                    (if debian) update /etc/apt/sources.list to use backports
+#                    (if debian) create /etc/apt/preferences to mask backports for !git
+#                    install git
+#                    install git2masterfiles
 #                activate certificate_authority
 #                    using "secret" create caroot tree
 #                    using "secret" create gpg identity
-#                activate ldap_server
+#                activate ldap_server, which will:
 #                    add slapd.conf for self's domain name (determined earlier) if not exists
 #                    start slapd, 
 #                    create self's host record if it doesn't exist, 
@@ -162,7 +167,6 @@ sub fqdomain{
     return undef;
 }
 
-
 ###################################################
 # Attempt to contact all the LDAP Servers 
 #     and get this hosts LDAP record
@@ -173,12 +177,15 @@ use Net::LDAP;
     my $setup=shift;
     my $returnlist;
     my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
-    my $mesg = $ldap->bind ;    # an anonymous bind
-    $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
-    $mesg->code && warn $mesg->error;
-    foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
-    $mesg = $ldap->unbind;   # take down session
-    return [$returnlist];
+    my $mesg;
+    if($ldap){
+        $mesg = $ldap->bind ;    # an anonymous bind
+        $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
+        $mesg->code && warn $mesg->error;
+        foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
+        $mesg = $ldap->unbind;   # take down session
+    }
+    return $returnlist;
 }
  
 sub host_ldap_record(){
@@ -197,7 +204,7 @@ sub host_ldap_record(){
         print STDERR "Searching for $searchdn via ldap://".$self->fqdomain().":389\n";
         $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$self->fqdomain(),'basedn'=>$basedn,'search'=>$searchdn});
     }
-    if(!defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){
+    if(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} )){
         foreach my $ldap_server (@{$self->ldap_servers}){
             # We already tried self...
             next if(($self->{'cfg'}->{'fqdn'} eq $ldap_server)||(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})));
@@ -205,6 +212,9 @@ sub host_ldap_record(){
             $self->{'cfg'}->{'ldap'}->{'hostrecord'}=$self->ldapsearch({'host'=>$ldap_server,'basedn'=>$basedn,'search'=>$searchdn});
             if(defined($self->{'cfg'}->{'ldap'}->{'hostrecord'})){ print STDERR "$searchdn found.\n"; }
         }
+    }
+    if(($iamone eq 1)&&(!defined( $self->{'cfg'}->{'ldap'}->{'hostrecord'} ))){ 
+        $self->add_classes("core_server");
     }
     return $self;
 }
@@ -219,10 +229,10 @@ if($ss){
         foreach my $records ( @{ $ss->{'cfg'}->{'ldap'}->{'hostrecord'} }){
             foreach my $entry ( @{ $records }){
                 foreach my $attr ( $entry->attributes ){
-                    if($attr =~ /^vennClass$/i){
+                    if($attr =~ /^configSet$/i){
                         $ss->add_classes($entry->get_value( $attr ));
                     }
-                    if($attr =~ /^vennbase$/i){
+                    if($attr =~ /^configBase$/i){
                         $ss->add_classes($entry->get_value( $attr ));
                     }
                 }

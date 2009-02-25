@@ -1,0 +1,22 @@
+control:
+        actionsequence          = ( copy editfiles packages processes shellcommands )
+
+copy:
+    linux.cfengine_server::
+        $(configroot)/linux/usr/local/sbin/git2masterfiles  dest=/usr/local/sbin/git2masterfiles
+         mode=744 type=binary server=$(policyhost) trustkey=true
+
+packages:
+    debian_4.cfengine_server::
+        git-arch                    action=install
+        git-cvs                     action=install
+        git-email                   action=install
+        git-daemon-run              action=install
+        gitk                        action=install
+        gitweb                      action=install
+        git-core                    action=install
+
+shellcommands:
+       # Policy Hosts need to get the latest state.
+       linux.cfengine_server::
+           "/usr/local/sbin/git2masterfiles"

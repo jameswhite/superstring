@@ -1,0 +1,185 @@
+#!/bin/bash
+########################################################################
+# This is the bare-minimum a host needs to get initialized into the farm
+########################################################################
+[ ${UID} -eq 0 ]||(echo run as root; exit -1)
+[ $# -eq 1 ]||(echo "Usage $0 <fully.qualified.domain.nam>"; exit -1)
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+DESIRED_FQDN=$1; 
+echo "${DESIRED_FQDN}"|grep  "\."
+if [ $? -ne 0 ]; then 
+    echo "Usage $0 <fully.qualified.domain.nam>"
+    exit -1
+fi
+hostname "${DESIRED_FQDN}"
+####################################
+# Try to determine the distribution
+####################################
+if [ -f /etc/debian_version ];then
+    DISTRO="debian"
+else 
+    if [ -f /etc/redhat_release ];then 
+        DISTRO="redhat"
+    else
+        DISTRO="unknown"
+    fi
+fi
+
+####################################
+# Common fixups
+####################################
+write_update_conf(){
+    DOMAIN=$(dnsdomainname)
+    UDC="/var/cfengine/inputs/update.conf"
+    if [ -f "${UDC}" ];then
+        /bin/rm "$UDC"
+    fi
+    echo "control:" > ${UDC}
+    echo "    actionsequence  = ( copy )" >> ${UDC}
+    echo "    domain          = ( ExecResult(\"/bin/dnsdomainname\") )">>${UDC}
+    COREHOSTS=$(dig +short -t srv  _ldap._tls.${DOMAIN}|\
+                awk '{print $NF}'|sed -e 's/\.$//')
+
+    # AddInstallable line:
+    MAX=$(echo "${COREHOSTS}"|wc -w)
+    MAXIDX=$(expr ${MAX} - 1) 
+    INSTALLS="    AddInstallable  = ("
+    for n in `seq 2 ${MAX}`; do
+       m=$(expr ${n} - 1) 
+       INSTALLS="$INSTALLS failover_${m} "
+    done
+       INSTALLS="$INSTALLS bitched_up )" 
+    echo "${INSTALLS}" >> /var/cfengine/inputs/update.conf
+    # Copy section
+    echo "copy:" >> ${UDC}
+    TEMPLATE="/var/cfengine/masterfiles/inputs dest=/var/cfengine/inputs 
+        r=inf mode=700 type=binary exclude=*.lst exclude=*~ exclude=#* 
+        server=~SERVER~ trustkey=true failover=~NEXT_FAIL~"
+    COUNT=0;
+    for server in `echo "${COREHOSTS}"`;do 
+        NIDX=$(expr ${COUNT} + 1)
+        case "${COUNT}" in
+           0)
+               echo "    any::" >> ${UDC}
+               echo "        ${TEMPLATE}"|sed -e "s/~SERVER~/${server}/" -e"s/~NEXT_FAIL~/failover_${NIDX}/" >> ${UDC}
+           ;;
+           "${MAXIDX}")
+               echo "    failover_${COUNT}::" >> ${UDC}
+               echo "        ${TEMPLATE}"|sed -e "s/~SERVER~/${server}/" -e"s/~NEXT_FAIL~/bitched_up/" >> ${UDC}
+           ;;
+           *)
+               echo "    failover_${COUNT}::" >> ${UDC}
+               echo "        ${TEMPLATE}"|sed -e "s/~SERVER~/${server}/" -e"s/~NEXT_FAIL~/failover_${NIDX}/" >> ${UDC}
+           ;;
+        esac
+        COUNT=$(expr ${COUNT} + 1)
+    done
+    echo "alerts:" >> ${UDC}
+    echo "    bitched_up::" >> ${UDC}
+    echo "        \"Failed to copy configurations from any source\"" >> ${UDC}
+
+}
+
+fix_etc_hosts(){
+    echo "rewriting /etc/hosts"
+    if [ -f /etc/.new_etc_hosts ];then rm /etc/.new_etc_hosts;fi
+    HNAME=$(hostname -s)
+    FQDN=$(hostname -f)
+    LOCAL=$(grep "127.0.0.1" /etc/hosts)
+    if [ ! -z "${LOCAL}" ];then 
+        echo "${LOCAL}"|grep -q "127.0.0.1 *localhost.localdomain *localhost"||\
+          LOCAL=$(echo ${LOCAL}|sed -e 's/127.0.0.1.*/127.0.0.1 localhost.localdomain localhost/')
+    else
+        LOCAL="127.0.0.1 localhost.localdomain localhost" 
+    fi
+    PUBLIC=$(grep "${IPADDR}" /etc/hosts)
+    if [ ! -z "${PUBLIC}" ];then 
+        echo "${PUBLIC}"|grep -q "${IPADDR} *${FQDN} *${HNAME}"||\
+            PUBLIC=$(echo "${PUBLIC}"| sed -e "s/${IPADDR}.*/${IPADDR} ${FQDN} ${HNAME}/")
+    else
+        PUBLIC="${IPADDR} ${FQDN} ${HNAME}"
+    fi
+    echo "${LOCAL}" > /etc/.new_etc_hosts
+    echo "${PUBLIC}" >> /etc/.new_etc_hosts
+    sed -e "s/127.0.0.1.*//" -e "s/${IPADDR}.*//" /etc/hosts |grep .>> /etc/.new_etc_hosts
+    if [ ! -f /etc/hosts.dists ];then mv /etc/hosts /etc/hosts.dist;fi
+    mv /etc/.new_etc_hosts /etc/hosts
+}
+
+####################################
+# Debian style fixups
+####################################
+fix_etc_hostname(){
+    echo "rewriting /etc/hostname"
+    FQDN=$(hostname -f);
+    if [ ! -z "${FQDN}" ]; then
+        echo "${FQDN}" > /etc/hostname
+    else
+        echo "unable to determine host name in fix_etc_hostname.";
+    fi
+}
+
+fix_etc_mailname(){
+    echo "rewriting /etc/mailname"
+    DOMAIN=$(dnsdomainname)
+    if [ ! -z "${DOMAIN}" ]; then
+        HNAME=$(hostname -s);
+        FQDN=$(hostname -f);
+        DOMAIN=$(echo $FQDN|sed -e "s/${HNAME}\.//")
+    fi
+    if [ ! -z "${DOMAIN}" ]; then
+        echo "Setting mail name to ${DOMAIN}";
+        echo "${DOMAIN}" > /etc/mailname
+    else
+        echo "unable to determine domain name in fix_etc_mailname.";
+        exit -1;
+    fi
+}
+
+####################################
+# RedHat style fixups
+####################################
+
+
+####################################
+# Get minimal facts about system
+####################################
+HNAME=$(hostname -s)
+FQDN=$(hostname -f)
+IFACE=$(route -n|awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|head -1)
+IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
+[ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
+[ -z ${IPADDR} ]&& ( echo "I cannot determine my IP address"; exit -1)
+echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
+    
+
+####################################
+# Set up configuration management
+####################################
+case "${DISTRO}" in
+    debian)
+        echo "I appear to be running debian."
+        apt-get update && apt-get dist-upgrade -y
+        [ -z $(which dig) ] && apt-get install -y dns-browse
+        [ -z $(which cfagent) ] && apt-get install -y cfengine2
+        [ -h /var/cfengine ]||(cd /var; ln -s lib/cfengine2 cfengine)
+        fix_etc_hosts
+        fix_etc_hostname
+        fix_etc_mailname
+        write_update_conf
+    ;;
+    redhat)
+        echo "I appear to be running redhat."
+        yum clean all -y 
+        yum update -y
+        yum upgrade -y
+        [ -z $(which dig) ] && yum install -y bind-utils
+        [ -z $(which cfagent) ] && yum install -y cfengine
+        fix_etc_hosts
+        #fix_etc_sysconfig_network
+    ;;
+    *)
+        echo "I don't appear to be running a disribution I support"
+        exit -2;
+    ;;
+esac

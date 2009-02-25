@@ -1,0 +1,46 @@
+#!/bin/bash
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin";
+export self=$(hostname -f)
+useage(){
+    echo "$0 [-i] -<n> <rr_record>";
+    echo "return the hostname or ip [-i] of the <n>th (alphanum sorted by ip) <rr_record>"
+}
+if [ -z $(which dig) ];then
+  echo "cannot find dig" 1>&2
+  echo "${self}"
+  exit -1
+fi
+byip=0
+while [ -n "$1" ]; do
+    case $1 in
+        -h) usage;shift 1;break;;
+        -i) byip=1;shift 1;;
+        -*) n=$(echo $1|sed -e 's/-//');shift 1;;
+        --) shift;break;; # end of options
+         *) rr_record=$1;break;;
+    esac
+done
+if [ -z ${rr_record} ];then
+    useage
+    exit -1;
+fi
+if [ -z ${n} ];then
+    useage
+    exit -1;
+fi
+# look it up
+ipnum=$(dig +short $rr_record|sort|awk -v num=${n} '{if(NR==num){print $0;set=1}else{last=$0;}}END{if(!set){print last}}')
+if [ $byip -eq 1 ];then
+    if [ -z ${ipnum} ];then 
+        echo "127.0.0.1"
+    else
+        echo ${ipnum}
+    fi
+else
+    host=$(dig +short -x ${ipnum}|sed -e 's/\.$//')
+    if [ -z ${host} ];then 
+        echo "${self}"
+    else
+        echo "${host}"
+    fi
+fi

@@ -1,0 +1,3 @@
+#!/bin/bash
+IFACE=$1
+/sbin/ifconfig ${IFACE} | /bin/grep 'inet addr:' | /usr/bin/cut -d: -f2 | /usr/bin/awk '{ print $1}'

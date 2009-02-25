@@ -1,0 +1,2 @@
+#!/bin/bash
+/sbin/route -n | /usr/bin/awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}' | /usr/bin/head -1
