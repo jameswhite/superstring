@@ -1,6 +1,5 @@
 control:
     actionsequence            = ( packages copy shellcommands )
-        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
         AddInstallable        = ( need_shorewall )
 
 packages:
