@@ -26,7 +26,7 @@ editfiles:
         { /etc/passwd
             BeginGroupIfNoLineContaining "openldap:x:104:104:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
                 DeleteLinesStarting "openldap:"
-                Append "openldap:x:108:108:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
+                Append "openldap:x:104:104:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
             EndGroup
         }
         { /etc/group
