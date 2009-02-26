@@ -21,7 +21,7 @@ files:
 links:
     /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(fqdn).clearkey
     /etc/ldap/ssl/host_certificate.crt -> /etc/ssl/certs/$(fqdn).crt
-    /etc/ldap/ssl/domain_trustchain.pem -> /etc/ssl/certs/$(fqdn)_trustchain.pem
+    /etc/ldap/ssl/domain_trustchain.pem -> /etc/ssl/certs/$(domain)_trustchain.pem
 
 copy:
     ldap_server.debian::
