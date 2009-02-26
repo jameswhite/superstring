@@ -47,6 +47,7 @@ editfiles:
 files:
     ldap_server::
         /etc/ldap/slapd_domains.conf mode=0644 owner=root group=root act=fixall
+        /etc/ldap/rootpw.conf mode=400 owner=root group=root act=fixall
 
 links:
     /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(fqdn).clearkey
@@ -66,6 +67,9 @@ copy:
 
         $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
+
+        $(configroot)/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
+            server=$(policyhost) type=sum owner=root group=root mode=0744 
  
     ldap_client.debian::
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
@@ -93,6 +97,8 @@ processes:
 shellcommands:
     debian.ldap_server::
         "/bin/bash -c '/usr/bin/id openldap|/bin/grep -q ssl-cert||/usr/sbin/usermod -a -G ssl-cert openldap'"
+        "/bin/basn -c 'if [ ! -f /etc/ldap/rootpw.conf ]; then /usr/sbin/slappasswd -h {SHA} -s \$(/usr/local/sbin/secret) > /etc/ldap/rootpw.conf;fi'"
+        
     ldap_server::
         "/bin/bash -c 'if [ ! -f /etc/ldap/slapd_domains.conf ]; then /usr/bin/touch /etc/ldap/slapd_domains.conf; fi;'"
     debian.bounce_slapd::
