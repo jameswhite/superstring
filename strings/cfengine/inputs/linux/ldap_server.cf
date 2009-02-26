@@ -98,7 +98,7 @@ processes:
 shellcommands:
     debian.ldap_server::
         "/bin/bash -c '/usr/bin/id openldap|/bin/grep -q ssl-cert||/usr/sbin/usermod -a -G ssl-cert openldap'"
-        "/bin/bash -c 'if [ ! -f /etc/ldap/rootpw.conf ]; then echo -n \"rootpw   \" > /etc/ldap/rootpw.conf; /usr/sbin/slappasswd -h {SHA} -s `/usr/local/sbin/secret` >> /etc/ldap/rootpw.conf;fi'"
+        "/bin/bash -c '/bin/grep -q \"SHA\" /etc/ldap/rootpw.conf|| (echo -n \"rootpw   \" > /etc/ldap/rootpw.conf; /usr/sbin/slappasswd -h {SHA} -s `/usr/local/sbin/secret` >> /etc/ldap/rootpw.conf)'"
         "/bin/bash -c 'if [ ! -f /etc/ldap/domains/$(domain)_slapd.conf ];then /usr/local/sbin/addldapdomain $(domain);fi'"
         
     ldap_server::
