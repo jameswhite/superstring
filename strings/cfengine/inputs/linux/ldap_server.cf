@@ -48,6 +48,7 @@ files:
     ldap_server::
         /etc/ldap/slapd_domains.conf mode=0644 owner=root group=root act=fixall
         /etc/ldap/rootpw.conf mode=400 owner=openldap group=openldap act=fixall
+        /etc/ldap/domains mode=400 owner=openldap group=openldap act=fixall r=inf
 
 links:
     /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(fqdn).clearkey
