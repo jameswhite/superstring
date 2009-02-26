@@ -1,5 +1,5 @@
 control:
-    actionsequence   = ( packages copy processes editfiles links shellcommands )
+    actionsequence   = ( packages copy processes editfiles links shellcommands files )
     AddInstallable   = ( bounce_slapd )
  
 packages:
@@ -14,6 +14,10 @@ packages:
  
 editfiles:
 
+files:
+    ldap_server::
+        /etc/ldap_slapd_domains.conf mode=0644 owner=root group=root act=fixall
+
 links:
     /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(FQDN).key
     /etc/ldap/ssl/host_certificate.crt -> /etc/ssl/certs/$(FQDN).crt
@@ -23,6 +27,9 @@ copy:
     ldap_server.debian::
         $(configroot)/linux/etc/ldap/schema/websages.schema dest=/etc/ldap/schema/websages.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/default/slapd dest=/etc/default/slapd
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
 
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
