@@ -54,5 +54,7 @@ processes:
         "nscd"      restart "/etc/init.d/nscd restart"
  
 shellcommands:
+    ldap_server::
+        "/bin/bash -c 'if [ ! -f /etc/ldap/slapd_domains.conf ]; then /usr/bin/touch /etc/ldap/slapd_domains.conf; fi;'"
     debian.bounce_slapd::
        "/etc/init.d/slapd restart"
