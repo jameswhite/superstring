@@ -1,5 +1,5 @@
 control:
-    actionsequence   = ( packages copy processes editfiles )
+    actionsequence   = ( packages copy processes editfiles links )
  
 packages:
     ldap_server::
@@ -16,6 +16,9 @@ editfiles:
 copy:
     ldap_server.debian::
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
             server=$(policyhost) type=sum owner=root group=root mode=0444
  
     ldap_client.debian::
