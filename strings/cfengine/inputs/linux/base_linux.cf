@@ -11,8 +11,8 @@ files:
     debian:: 
         /etc/cfengine_installed mode=0644 owner=root group=root act=touch
         /home mode=1777 owner=root group=root act=fixall
-        /etc/ssl/certs mode=0755 owner=root group=ssl-cert act=fixall
-        /etc/ssl/private mode=0750 owner=root group=ssl-cert act=fixall
+        /etc/ssl/certs mode=0755 owner=root group=ssl-cert act=fixall r=inf
+        /etc/ssl/private mode=0750 owner=root group=ssl-cert act=fixall r=inf
 
 editfiles:
     debian::

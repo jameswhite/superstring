@@ -46,7 +46,7 @@ editfiles:
 
 files:
     ldap_server::
-        /etc/ldap_slapd_domains.conf mode=0644 owner=root group=root act=fixall
+        /etc/ldap/slapd_domains.conf mode=0644 owner=root group=root act=fixall
 
 links:
     /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(fqdn).clearkey
