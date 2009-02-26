@@ -1,15 +1,15 @@
 control:
     actionsequence            = ( packages copy shellcommands )
-        AddInstallable        = ( need_shorewall )
+        AddInstallable        = ( need_shorewall had_shorewall )
 
 packages:
 
     debian::
-        shorewall               action=install elsedefine=need_shorewall
+        shorewall               action=install define=had_shorewall elsedefine=need_shorewall
 
 copy:
 
-    debian_5::
+    debian_5.had_shorewall::
         $(configroot)/linux/etc/default/shorewall dest=/etc/default/shorewall
             server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
 
@@ -31,7 +31,7 @@ copy:
 
 shellcommands:
 
-     debian_5::
+     debian_5.had_shorewall::
         "/bin/bash -c 'if [ -f /etc/init.d/shorewall.dpkg-new ];then mv /etc/init.d/shorewall.dpkg-new /etc/init.d/shorewall; fi'"
         "/bin/bash -c 'if [ `/sbin/iptables -L| /bin/grep .| /usr/bin/wc -l` -le 6 ];then /etc/init.d/shorewall start; fi'"
 

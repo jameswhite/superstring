@@ -1,10 +1,10 @@
 control:
     actionsequence   = ( packages copy processes editfiles links shellcommands files )
-    AddInstallable   = ( bounce_slapd )
+    AddInstallable   = ( had_slapd bounce_slapd )
  
 packages:
     ldap_server::
-        slapd            action=install
+        slapd            action=install define=had_slapd
  
     ldap_client::
         nscd             action=install
@@ -54,7 +54,7 @@ links:
     /etc/ldap/ssl/domain_trustchain.pem -> /etc/ssl/certs/$(domain)_trustchain.pem
 
 copy:
-    ldap_server.debian::
+    ldap_server.debian.had_slapd::
         $(configroot)/linux/etc/ldap/schema/websages.schema dest=/etc/ldap/schema/websages.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
 
