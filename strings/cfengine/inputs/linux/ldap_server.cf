@@ -21,6 +21,9 @@ links:
 
 copy:
     ldap_server.debian::
+        $(configroot)/linux/etc/ldap/schema/websages.schema dest=/etc/ldap/schema/websages.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
 
