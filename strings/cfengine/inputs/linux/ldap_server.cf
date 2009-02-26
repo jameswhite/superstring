@@ -1,5 +1,6 @@
 control:
-    actionsequence   = ( packages copy processes editfiles links )
+    actionsequence   = ( packages copy processes editfiles links shellcommands )
+    AddInstallable   = ( bounce_slapd )
  
 packages:
     ldap_server::
@@ -24,7 +25,7 @@ copy:
             server=$(policyhost) type=sum owner=root group=root mode=0444
 
         $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
-            server=$(policyhost) type=sum owner=root group=root mode=0444
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
  
     ldap_client.debian::
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
@@ -49,3 +50,6 @@ processes:
     ldap_client::
         "nscd"      restart "/etc/init.d/nscd restart"
  
+shellcommands:
+    debian.bounce_slapd::
+       "/etc/init.d/slapd restart"
