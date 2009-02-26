@@ -13,6 +13,11 @@ packages:
  
 editfiles:
 
+links:
+    /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(FQDN).key
+    /etc/ldap/ssl/host_certificate.crt -> /etc/ssl/certs/$(FQDN).crt
+    /etc/ldap/ssl/domain_trustchain.pem -> /etc/ssl/certs/$(FQDN)_trustchain.pem
+
 copy:
     ldap_server.debian::
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
