@@ -1,0 +1,252 @@
+# 1.3.6.1.4.1.32372                <- websages
+# 1.3.6.1.4.1.32372.1              <-   websages.1:
+# 1.3.6.1.4.1.32372.1.1            <-     Version 1:
+
+# 1.3.6.1.4.1.32372.1.1.1          <- LDAP:
+# 1.3.6.1.4.1.32372.1.1.1.1        <-   Revision 1:
+# 1.3.6.1.4.1.32372.1.1.1.1.1      <-     Configuration Items:
+# 1.3.6.1.4.1.32372.1.1.1.1.1.1    <-       Configuration Attributes:
+# 1.3.6.1.4.1.32372.1.1.1.1.1.1.1  <-         - gatewayIpNumber
+# 1.3.6.1.4.1.32372.1.1.1.1.1.1.2  <-         - configBase
+# 1.3.6.1.4.1.32372.1.1.1.1.1.1.3  <-         - configSet
+# 1.3.6.1.4.1.32372.1.1.1.1.1.2    <-       Configuration ObjectClasses:
+# 1.3.6.1.4.1.32372.1.1.1.1.1.2.1  <-         - ipSubnet
+# 1.3.6.1.4.1.32372.1.1.1.1.1.2.2  <-         - configHost
+# 1.3.6.1.4.1.32372.1.1.1.1.2      <-     State Tracking Items:
+# 1.3.6.1.4.1.32372.1.1.1.1.2.1    <-       State Tracking Attributes:
+# 1.3.6.1.4.1.32372.1.1.1.1.2.1.1  <-         - snmpEnabled
+# 1.3.6.1.4.1.32372.1.1.1.1.2.1.2  <-         - hostFirewallActive
+# 1.3.6.1.4.1.32372.1.1.1.1.2.1.3  <-         - icmpEchoEnabled
+# 1.3.6.1.4.1.32372.1.1.1.1.3      <-     Pfacter Items:
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1    <-       Pfacter Tracking Attributes:
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.1  <-         - uniqueId
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.2  <-         - hostname
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.3  <-         - domain
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.4  <-         - fqdn
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.5  <-         - ipAddress
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.6  <-         - hardwareManufacturer
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.7  <-         - hardwareProduct
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.8  <-         - hardwareModel
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.9  <-         - hardwarePlatform
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.10 <-         - architecture
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.11 <-         - lsbId
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.12 <-         - lsbRelease
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.13 <-         - lsbDescription
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.14 <-         - operatingSystem
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.15 <-         - kernelRelease
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.16 <-         - kernelVersion
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.17 <-         - kernel
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.18 <-         - processor
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.19 <-         - processorCount
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.20 <-         - disk
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.21 <-         - memory
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.22 <-         - memoryTotal
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1.23 <-         - localtime
+# 1.3.6.1.4.1.32372.1.1.1.1.3.1    <-       Pfacter Tracking ObjectClasses:
+# 1.3.6.1.4.1.32372.1.1.1.1.3.2.1 <-          - pfHost
+
+
+################## AttributeTypes ################## 
+
+# STATE
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.1.1.2 NAME 'configBase'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    )
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.1.1.3 NAME 'configSet'  
+    DESC 'A single configuration set/class/whatever this host belongs to'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    ) 
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.1.1.1 NAME 'gatewayIpNumber'
+    DESC 'The entry and exit point(s) for an ipSubnetGateway'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.2.1.1 NAME 'snmpEnabled'
+    DESC 'SNMP has been enabled on this system'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.2.1.2 NAME 'hostFirewallActive'
+    DESC 'The host-based firewall is Active'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.2.1.3 NAME 'icmpEchoEnabled'
+    DESC 'The host is configured to respond to ICMP Echo Requests'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    )
+
+# PFACTER
+
+#attributetype ( 1.3.6.1.4.1.4203.1.3.5 NAME 'supportedFeatures' 
+#    DESC 'features supported by the server' EQUALITY objectIdentifierMatch 
+#    SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 
+#    X-ORIGIN 'user defined' 
+#    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.1 NAME 'uniqueId'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.2 NAME 'hostname'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.3 NAME 'domain'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.4 NAME 'fqdn'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.5 NAME 'ipAddress'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.6 NAME 'hardwareManufacturer'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.7 NAME 'hardwareProduct'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.8 NAME 'hardwareModel'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.9 NAME 'hardwarePlatform'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.10 NAME 'architecture'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.11 NAME 'lsbId'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.12 NAME 'lsbRelease'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.13 NAME 'lsbDescription'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.14 NAME 'operatingSystem'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.15 NAME 'kernelRelease'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.16 NAME 'kernelVersion'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.17 NAME 'kernel'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.18 NAME 'processor'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.19 NAME 'processorCount'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.20 NAME 'disk'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.21 NAME 'memory'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.22 NAME 'memoryTotal'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+attributetype ( 1.3.6.1.4.1.32372.1.1.1.1.3.1.23 NAME 'localtime'  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    SINGLE-VALUE 
+    X-ORIGIN 'user defined' 
+    )
+
+################## ObjectClasses ##################
+objectClass ( 1.3.6.1.4.1.32372.1.1.1.1.1.2.1 NAME 'ipSubnet'
+    SUP top
+    AUXILIARY
+    DESC 'An IP Subnet'
+    MUST ( ipHostNumber $ ipNetmaskNumber $ cn )
+    MAY ( manager $ description $ l $ gatewayIpNumber )
+    )
+
+objectClass ( 1.3.6.1.4.1.32372.1.1.1.1.1.2.2 NAME 'configHost'
+    SUP top
+    AUXILIARY
+    MUST ( configBase $ configSet )
+    MAY  ( snmpEnabled $ hostFirewallActive $ icmpEchoEnabled )
+    )
+
+objectClass ( 1.3.6.1.4.1.32372.1.1.1.1.3.2.1 NAME 'pfHost' 
+    SUP top 
+    STRUCTURAL 
+    MAY ( architecture $ disk $ domain $ fqdn $ hardwareManufacturer $ hardwareModel $ hardwarePlatform $ hardwareProduct $ hostname $ ipAddress $ kernel $ kernelRelease $ kernelVersion $ localtime $ lsbDescription $ lsbId $ lsbRelease $ macAddress $ memory $ memoryTotal $ operatingSystem $ processor $ processorCount $ uniqueId ) 
+    X-ORIGIN 'user defined' 
+    )
+
+
+# 1.3.6.1.4.1.32372.1.1.2         <- SNMP:
+# 1.3.6.1.4.1.32372.1.1.2.1       <-   Revision 1:
+# 1.3.6.1.4.1.32372.1.1.2.1.1     <-   Poll OIDs:
+# 1.3.6.1.4.1.32372.1.1.2.1.2     <-   Trap OIDs:
+
