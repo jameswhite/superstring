@@ -68,7 +68,7 @@ copy:
         $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
 
-        $(configroot)/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
+        $(configroot)/linux/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
             server=$(policyhost) type=sum owner=root group=root mode=0744 
  
     ldap_client.debian::
