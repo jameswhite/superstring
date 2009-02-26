@@ -11,6 +11,8 @@ files:
     debian:: 
         /etc/cfengine_installed mode=0644 owner=root group=root act=touch
         /home mode=1777 owner=root group=root act=fixall
+        /etc/ssl/certs mode=0755 owner=root group=ssl-cert act=fixall
+        /etc/ssl/private mode=0750 owner=root group=ssl-cert act=fixall
 
 editfiles:
     debian::
@@ -33,6 +35,10 @@ editfiles:
             BeginGroupIfNoLineContaining "opt:x:500:"
                 DeleteLinesStarting "opt:"
                 Append "opt:x:500:"
+            EndGroup
+            BeginGroupIfNoLineContaining "ssl-cert:x:108:"
+                DeleteLinesStarting "ssl-cert:"
+                Append "ssl-cert:x:108:"
             EndGroup
         }
         { /etc/shadow
