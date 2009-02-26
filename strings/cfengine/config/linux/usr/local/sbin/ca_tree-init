@@ -283,6 +283,7 @@ find /var/lib/certificate_authority -type f -exec chmod 600 {} \;
 
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.crt /etc/ssl/certs/${HNAME}.${DOMAIN}.pem
 /bin/cp ${MY_CERT}/${HNAME}.${DOMAIN}.key /etc/ssl/private/${HNAME}.${DOMAIN}.key
+echo "${SECRET}"| openssl rsa -in /etc/ssl/private/${HNAME}.${DOMAIN}.key -out /etc/ssl/private/${HNAME}.${DOMAIN}.clearkey -passin fd:0
 (cd /etc/ssl/certs/; /usr/bin/c_rehash)
 
 umask ${UMASK}
