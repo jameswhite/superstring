@@ -13,6 +13,36 @@ packages:
         ldap-utils       action=install
  
 editfiles:
+    debian::
+        { /etc/debconf.conf
+            BeginGroupIfNoLineMatching "^Frontend.*"
+                LocateLineMatching "^Templates.*"
+                InsertLine "Frontend: noninteractive"
+                InsertLine "Priority: critical"
+            EndGroup
+        }
+
+        ## Add OpenLDAP User Addition
+        { /etc/passwd
+            BeginGroupIfNoLineContaining "openldap:x:104:104:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:x:108:108:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
+            EndGroup
+        }
+        { /etc/group
+            BeginGroupIfNoLineContaining "openldap:x:104:"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:x:104:"
+            EndGroup
+        }
+        { /etc/shadow
+            BeginGroupIfNoLineContaining "openldap:SDhSlWtuuiarU:13977:0:99999:7:::"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:SDhSlWtuuiarU:13977:0:99999:7:::"
+            EndGroup
+        }
+        ## End Opt User Addition
+
 
 files:
     ldap_server::
