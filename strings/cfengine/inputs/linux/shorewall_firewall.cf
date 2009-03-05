@@ -22,8 +22,9 @@ copy:
         $(configroot)/linux/etc/shorewall/policy dest=/etc/shorewall/policy
             server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
 
-        $(configroot)/linux/etc/shorewall/rules dest=/etc/shorewall/rules
-            server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
+        # we need to edit the actual file, so this is just to have a copy handy...
+        $(configroot)/linux/etc/shorewall/rules dest=/etc/shorewall/rules.dist
+            server=$(policyhost) type=sum owner=root group=root mode=0440 
 
         $(configroot)/linux/etc/shorewall/zones dest=/etc/shorewall/zones
             server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
