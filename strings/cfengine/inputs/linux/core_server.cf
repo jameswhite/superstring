@@ -1,0 +1,26 @@
+control:
+        actionsequence          = ( copy shellcommands files )
+
+files:
+    linux.core_server::
+        /usr/local/sbin/secret         owner=root group=root mode=0700 act=fixall
+        /usr/local/sbin/secret-init    owner=root group=root mode=0700 act=fixall
+        /usr/local/sbin/gpg-init       owner=root group=root mode=0700 act=fixall
+        /usr/local/sbin/ca_tree-init   owner=root group=root mode=0700 act=fixall
+        /var/lib/certificate_authority owner=root group=root mode=0700 act=fixall r=inf
+        /root/.gnupg                   owner=root group=root mode=0700 act=fixall r=inf
+
+copy:
+    linux.core_server::
+        $(configroot)/linux/usr/local/sbin/secret-init  dest=/usr/local/sbin/secret-init
+         mode=700 type=binary server=$(policyhost) trustkey=true
+        $(configroot)/linux/usr/local/sbin/gpg-init  dest=/usr/local/sbin/gpg-init
+         mode=700 type=binary server=$(policyhost) trustkey=true
+        $(configroot)/linux/usr/local/sbin/ca_tree-init  dest=/usr/local/sbin/ca_tree-init
+         mode=700 type=binary server=$(policyhost) trustkey=true
+
+shellcommands:
+       linux.core_server::
+           "/bin/bash -c 'if [ ! -f /usr/local/sbin/secret ];then /usr/local/sbin/secret-init;fi'"
+           "/bin/bash -c 'if [ ! -d /root/.gnupg ];then /usr/local/sbin/gpg-init;fi'"
+           "/bin/bash -c 'if [ ! -d /var/lib/certificate_authority ];then /usr/local/sbin/ca_tree-init;fi'"

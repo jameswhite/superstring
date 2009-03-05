@@ -4,12 +4,15 @@ control:
         DefaultPkgMgr         = ( dpkg )
         pkgmgr                = ( dpkg )
         DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
-        AddInstallable        = ( update_apt need_base_linux_packages )
+        AddInstallable        = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
+
 
 files:
     debian:: 
         /etc/cfengine_installed mode=0644 owner=root group=root act=touch
         /home mode=1777 owner=root group=root act=fixall
+        /etc/ssl/certs mode=0755 owner=root group=ssl-cert act=fixall r=inf
+        /etc/ssl/private mode=0750 owner=root group=ssl-cert act=fixall r=inf
 
 editfiles:
     debian::
@@ -33,6 +36,10 @@ editfiles:
                 DeleteLinesStarting "opt:"
                 Append "opt:x:500:"
             EndGroup
+            BeginGroupIfNoLineContaining "ssl-cert:x:108:"
+                DeleteLinesStarting "ssl-cert:"
+                Append "ssl-cert:x:108:"
+            EndGroup
         }
         { /etc/shadow
             BeginGroupIfNoLineContaining "opt:SDhSlWtuuiarU:13977:0:99999:7:::"
@@ -51,14 +58,11 @@ copy:
         $(configroot)/linux/etc/default/cfengine2 dest=/etc/default/cfengine2
             server=$(policyhost) type=sum owner=root group=root mode=0440
 
-        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
-            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
-
-        $(configroot)/linux/etc/apt/preferences dest=/etc/apt/preferences
-            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
-
         $(configroot)/linux/etc/profile dest=/etc/profile
             server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/apt/sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
 
         $(configroot)/linux/etc/ssh/moduli dest=/etc/ssh/moduli
             server=$(policyhost) type=sum owner=root group=root mode=0444
@@ -72,12 +76,25 @@ copy:
         $(configroot)/linux/etc/cron.weekly/apt-clean dest=/etc/cron.weekly/apt-clean
             server=$(policyhost) type=sum owner=root group=root mode=0755
 
+    debian_4::
+        $(configroot)/linux/etc/apt/debian_4__preferences dest=/etc/apt/preferences
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+        $(configroot)/linux/etc/apt/debian_4__sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+    debian_5::
+        $(configroot)/linux/etc/apt/debian_5__preferences dest=/etc/apt/preferences
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
+        $(configroot)/linux/etc/apt/debian_5__sources.list dest=/etc/apt/sources.list
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=update_apt
+
 packages:
     debian::
         less                   action=install elsedefine=need_base_linux_packages
         file                   action=install elsedefine=need_base_linux_packages
         screen                 action=install elsedefine=need_base_linux_packages
-        ntp-simple             action=install elsedefine=need_base_linux_packages
         ntpdate                action=install elsedefine=need_base_linux_packages
         sharutils              action=install elsedefine=need_base_linux_packages
         sudo                   action=install elsedefine=need_base_linux_packages
@@ -90,6 +107,14 @@ packages:
         ca-certificates        action=install elsedefine=need_base_linux_packages
         cron-apt               action=install elsedefine=need_base_linux_packages
         libnet-ldap-perl       action=install elsedefine=need_base_linux_packages
+        git-core               action=install elsedefine=need_base_linux_packages
+
+    debian_4::
+        ntp-simple             action=install elsedefine=need_base_debian_4_packages
+
+    debian_5::
+        ntp                    action=install elsedefine=need_base_debian_5_packages
+        ntpdate                action=install elsedefine=need_base_debian_5_packages
 
 processes:
     debian::
@@ -105,8 +130,16 @@ tidy:
 
 shellcommands:
      debian::
-         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http://backports.org/debian/archive.key | /usr/bin/apt-key add -"
+         "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http\://backports.org/debian/archive.key | /usr/bin/apt-key add -"
+
      update_apt::
         "/usr/bin/apt-get update"
+
      need_base_linux_packages::
-        "/usr/bin/apt-get -y install less file screen ntp-simple ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl"
+        "/usr/bin/apt-get -y install less file screen ntpdate sharutils sudo strace syslog-ng subversion vim iptables rsync ca-certificates cron-apt libnet-ldap-perl git-core"
+
+    need_base_debian_4_packages::
+        "/usr/bin/apt-get -y install ntp-simple"
+
+    need_base_debian_5_packages::
+        "/usr/bin/apt-get -y install ntp ntpdate"

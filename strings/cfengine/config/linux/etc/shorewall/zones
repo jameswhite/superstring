@@ -1,0 +1,6 @@
+###############################################################################
+#ZONE TYPE OPTIONS IN OUT
+# OPTIONS OPTIONS
+fw firewall
+net ipv4
+#LAST LINE - ADD YOUR ENTRIES ABOVE THIS ONE - DO NOT REMOVE

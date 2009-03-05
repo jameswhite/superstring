@@ -1,0 +1,75 @@
+#!/bin/bash
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+DATADIR="/opt/ldap-data"
+[ $# > 1 ] || exit -1;
+DOMAIN=$1
+[ -z "${DOMAIN}" ] && exit -1
+
+#
+# Create the domain config dir
+#
+if [ ! -d /etc/ldap/domains ];then 
+    mkdir -p /etc/ldap/domains
+    chown -R openldap:openldap /etc/ldap/domains
+fi
+
+#
+# Create the domain data dir
+#
+if [ ! -d ${DATADIR}/${DOMAIN} ];then 
+    mkdir -p ${DATADIR}/${DOMAIN}
+    chown -R openldap:openldap ${DATADIR}/${DOMAIN}
+fi
+
+#
+# Include the domain config file in the latest config
+#
+grep -q "include /etc/ldap/domains/${DOMAIN}_slapd.conf" /etc/ldap/slapd_domains.conf || \
+    echo "include /etc/ldap/domains/${DOMAIN}_slapd.conf" > /etc/ldap/slapd_domains.conf
+
+#
+# Write out the domain config file
+#
+LDAPDOMAIN="dc=$(echo ${DOMAIN}|sed -e s/\\./,dc=/)"
+ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0)
+tail -n+$ARCHIVE $0 | sed -e"s/~DOMAIN~/${DOMAIN}/g" -e "s/~LDAPDOMAIN~/${LDAPDOMAIN}/" > \
+    /etc/ldap/domains/${DOMAIN}_slapd.conf
+
+#
+# Bye
+#
+exit 0;
+__ARCHIVE_BELOW___
+### BEGIN ~DOMAIN~ slapd section ###
+database        bdb
+suffix          "~LDAPDOMAIN~"
+checkpoint      512 30
+rootdn          "cn=root,ou=Special Users,~LDAPDOMAIN~"
+include         /etc/ldap/rootpw.conf
+directory       /opt/ldap-data/~DOMAIN~
+replogfile      /opt/ldap-data/~DOMAIN~/replog
+index objectClass       eq
+
+# ~DOMAIN~ LDAP Options
+lastmod                 on
+dbconfig                set_cachesize 0 2097152 0
+overlay                 syncprov
+syncprov-checkpoint     1000 60
+
+# ~DOMAIN~ ACL Definition
+# give ldapsearch DN limitless searches
+limits dn.exact="cn=ldapsync,ou=Special,~LDAPDOMAIN~" time.soft=unlimited time.hard=unlimited size.soft=unlimited size.hard=unlimited
+
+access to attrs=userPassword,shadowLastChange
+        by dn="cn=opt,ou=Special,~LDAPDOMAIN~" write
+        by dn="cn=ldapsync,ou=Special,~LDAPDOMAIN~" read
+        by anonymous auth
+        by self write
+        by * none
+access to dn.base="" by * read
+
+access to *
+        by dn="cn=opt,ou=Special,~LDAPDOMAIN~" write
+        by * read
+
+### END ~DOMAIN~ slapd section ###

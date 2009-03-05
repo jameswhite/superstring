@@ -1,9 +1,10 @@
 control:
-    actionsequence   = ( packages copy processes editfiles )
+    actionsequence   = ( packages copy processes editfiles links shellcommands files )
+    AddInstallable   = ( had_slapd bounce_slapd )
  
 packages:
     ldap_server::
-        slapd            action=install
+        slapd            action=install define=had_slapd
  
     ldap_client::
         nscd             action=install
@@ -12,11 +13,65 @@ packages:
         ldap-utils       action=install
  
 editfiles:
+    debian::
+        { /etc/debconf.conf
+            BeginGroupIfNoLineMatching "^Frontend.*"
+                LocateLineMatching "^Templates.*"
+                InsertLine "Frontend: noninteractive"
+                InsertLine "Priority: critical"
+            EndGroup
+        }
+
+        ## Add OpenLDAP User Addition
+        { /etc/passwd
+            BeginGroupIfNoLineContaining "openldap:x:104:104:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:x:104:104:OpenLDAP Server Account:/var/lib/ldap:/bin/false"
+            EndGroup
+        }
+        { /etc/group
+            BeginGroupIfNoLineContaining "openldap:x:104:"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:x:104:"
+            EndGroup
+        }
+        { /etc/shadow
+            BeginGroupIfNoLineContaining "openldap:SDhSlWtuuiarU:13977:0:99999:7:::"
+                DeleteLinesStarting "openldap:"
+                Append "openldap:SDhSlWtuuiarU:13977:0:99999:7:::"
+            EndGroup
+        }
+        ## End Opt User Addition
+
+
+files:
+    ldap_server::
+        /etc/ldap/slapd_domains.conf mode=0644 owner=root group=root act=fixall
+        /etc/ldap/rootpw.conf mode=400 owner=openldap group=openldap act=fixall
+        /etc/ldap/domains mode=755 owner=openldap group=openldap act=fixall r=inf
+        /opt/ldap-data mode=755 owner=root group=root act=fixall
+
+links:
+    /etc/ldap/ssl/host_certificate.key -> /etc/ssl/private/$(fqdn).clearkey
+    /etc/ldap/ssl/host_certificate.crt -> /etc/ssl/certs/$(fqdn).pem
+    /etc/ldap/ssl/domain_trustchain.pem -> /etc/ssl/certs/$(domain)_trustchain.pem
 
 copy:
-    ldap_server.debian::
+    ldap_server.debian.had_slapd::
+        $(configroot)/linux/etc/ldap/schema/websages.schema dest=/etc/ldap/schema/websages.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/default/slapd dest=/etc/default/slapd
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
+
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
+            server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
+
+        $(configroot)/linux/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
+            server=$(policyhost) type=sum owner=root group=root mode=0744 
  
     ldap_client.debian::
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
@@ -41,3 +96,13 @@ processes:
     ldap_client::
         "nscd"      restart "/etc/init.d/nscd restart"
  
+shellcommands:
+    debian.ldap_server::
+        "/bin/bash -c '/usr/bin/id openldap|/bin/grep -q ssl-cert||/usr/sbin/usermod -a -G ssl-cert openldap'"
+        "/bin/bash -c '/bin/grep -q \"SHA\" /etc/ldap/rootpw.conf|| (echo -n \"rootpw   \" > /etc/ldap/rootpw.conf; /usr/sbin/slappasswd -h {SHA} -s `/usr/local/sbin/secret` >> /etc/ldap/rootpw.conf)'"
+        "/bin/bash -c 'if [ ! -f /etc/ldap/domains/$(domain)_slapd.conf ];then /usr/local/sbin/addldapdomain $(domain);fi'"
+        
+    ldap_server::
+        "/bin/bash -c 'if [ ! -f /etc/ldap/slapd_domains.conf ]; then /usr/bin/touch /etc/ldap/slapd_domains.conf; fi'"
+    debian.bounce_slapd::
+       "/etc/init.d/slapd restart"
