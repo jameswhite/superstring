@@ -1,0 +1,79 @@
+#!/bin/bash
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/usr/local/sbin:/sbin"
+DOMAIN=$(dnsdomainname)
+
+slapd_running(){
+    PS_CHECK=$(grep SLAPD_SERVICES /etc/default/slapd|sed -e 's/[^"]*"//' -e 's/"$//')
+    ps -ef | grep "sl[a]pd"|grep "${PS_CHECK}" >/dev/null 2>&1
+    return $?
+}
+
+slapd_binding(){
+    ldapsearch -xLh 127.0.0.1 \
+               -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
+               -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
+               -s sub -w $(secret) "(objectclass=*)" >/dev/null 2>&1
+    return $?
+}
+
+ldap_populated(){
+    record_count=$(ldapsearch -xLh 127.0.0.1 \
+                              -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
+                              -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
+                              -s sub -w $(secret) "(objectclass=*)" |wc -l)
+    if [ ${record_count} -gt 10 ];then return 1;fi
+    return 0;
+}
+
+signature_valid(){
+    signed_file="$1"
+    cat ${signed_file}|gpg --verify
+    return $?
+}
+
+populate_ldap(){
+    LDAP_INIT=$(dig +short -t txt ldap-init.${DOMAIN}|sed -e 's/"//g')
+    CLONE_URL=$(echo ${LDAP_INIT}|sed -e 's/:\/.*//g')
+    PATH_PART=$(echo ${LDAP_INIT}|sed -e 's/.*:\///g')
+    REPO_NAME=$(echo ${CLONE_URL}|sed -e 's/.*\///g' -e 's/.git//')
+    echo "fetching ${CLONE_URL}"
+    if [ ! -d /var/cache/git ];then mkdir -p /var/cache/git; chmod 755 /var/cache/git; fi
+    if [ ! -d /var/cache/git/${REPO_NAME} ];then 
+        (cd /var/cache/git; git-clone ${CLONE_URL})
+    fi
+    if [ ! -d /var/cache/git/${REPO_NAME} ];then 
+        echo "something went wrong with git clone. aborting..."
+        exit 1;
+    fi
+    echo "validating ${PATH_PART}"
+    if [ ! -f /var/cache/git/${REPO_NAME}/${PATH_PART} ];then 
+        echo "I cannot find /var/cache/git/${REPO_NAME}/${PATH_PART} which was indicated by the ldap-init.${DOMAIN} TXT record in DNS. aborting..."
+        exit 1;
+    else
+        if signature_valid /var/cache/git/${REPO_NAME}/${PATH_PART}; then
+           TMP_FILE=$(mktemp /dev/shm/ldap-init.XXXX)
+           awk '{
+                  if( $0~"-----BEGIN PGP SIGNATURE-----" ){ on=0; }
+                  if(on){ print $0 };
+                  if( $0~"-----BEGIN PGP SIGNED MESSAGE-----" ){ getline;getline;; on=1; }
+                }' /var/cache/git/${REPO_NAME}/${PATH_PART} > ${TMP_FILE}
+           ldapadd -xh 127.0.0.1 \
+                   -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
+                   -w $(secret) \
+                   -f ${TMP_FILE}
+           rm ${TMP_FILE}     
+        else
+            echo "I cannot validate the signature on /var/cache/git/${REPO_NAME}/${PATH_PART}. aborting..."
+        fi
+    fi
+}
+
+if ! slapd_running ; then /etc/init.d/slapd start   ; fi
+if ! slapd_running ; then echo "cannot start slapd. aborting..."; exit 1; fi
+
+if ! slapd_binding ; then /etc/init.d/slapd restart ; fi
+if ! slapd_binding ; then echo "cannot bind to slapd. aborting..."; exit 1; fi
+
+if ! ldap_populated ; then populate_ldap ; fi
+if ! ldap_populated ; then echo "could not populate ldap. aborting...";exit 1; fi
+
