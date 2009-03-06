@@ -70,6 +70,9 @@ copy:
         $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
 
+        $(configroot)/linux/usr/local/sbin/ldap-init dest=/usr/local/sbin/ldap-init
+            server=$(policyhost) type=sum owner=root group=root mode=0744 
+ 
         $(configroot)/linux/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
             server=$(policyhost) type=sum owner=root group=root mode=0744 
  
