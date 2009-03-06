@@ -1,6 +1,6 @@
 control:
     actionsequence            = ( packages copy shellcommands )
-        AddInstallable        = ( need_shorewall had_shorewall )
+        AddInstallable        = ( need_shorewall had_shorewall new_shorewall_rules )
 
 packages:
 
@@ -23,14 +23,20 @@ copy:
             server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
 
         # we need to edit the actual file, so this is just to have a copy handy...
-        $(configroot)/linux/etc/shorewall/rules dest=/etc/shorewall/rules.dist
+        $(configroot)/linux/etc/shorewall/rules dest=/etc/shorewall/rules.dist define=new_shorewall_rules
             server=$(policyhost) type=sum owner=root group=root mode=0440 
 
         $(configroot)/linux/etc/shorewall/zones dest=/etc/shorewall/zones
             server=$(policyhost) type=sum owner=root group=root mode=0440 define=bounce_shorewall
 
+        $(configroot)/linux/usr/local/sbin/shorewall_newrules dest=/usr/local/sbin/shorewall_newrules
+            server=$(policyhost) type=sum owner=root group=root mode=0744 define=new_shorewall_rules
+
 
 shellcommands:
+    new_shorewall_rules:
+        "/bin/bash -c '/usr/local/sbin/shorewall_newrules'"
+        "/etc/init.d/shorewall restart"
 
      debian_5.had_shorewall::
         "/bin/bash -c 'if [ -f /etc/init.d/shorewall.dpkg-new ];then mv /etc/init.d/shorewall.dpkg-new /etc/init.d/shorewall; fi'"

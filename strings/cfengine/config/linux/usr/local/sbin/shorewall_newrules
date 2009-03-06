@@ -1,0 +1,2 @@
+#!/bin/bash
+/bin/cp /etc/shorewall/rules.dist /etc/shorewall/rules
