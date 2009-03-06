@@ -23,7 +23,7 @@ ldap_populated(){
                               -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                               -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                               -s sub -w $(secret) "(objectclass=*)"| grep "^dn:" |wc -l)
-    if [ ${record_count} -gt 10 ];then return 0;fi
+    if [ ${record_count} -gt 5 ];then return 0;fi
     return 1;
 }
 
@@ -66,6 +66,7 @@ populate_ldap(){
            rm ${TMP_FILE}     
         else
             echo "I cannot validate the signature on /var/cache/git/${REPO_NAME}/${PATH_PART}. aborting..."
+            exit 1;
         fi
     fi
 }
