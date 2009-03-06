@@ -13,16 +13,18 @@ slapd_binding(){
                -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                -s sub -w $(secret) "(objectclass=*)" >/dev/null 2>&1
-    return $?
+    EXIT=$?
+    if [ ${EXIT} -eq 32 ]; then return 0; fi
+    return ${EXIT}
 }
 
 ldap_populated(){
     record_count=$(ldapsearch -xLh 127.0.0.1 \
                               -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                               -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
-                              -s sub -w $(secret) "(objectclass=*)" |wc -l)
-    if [ ${record_count} -gt 10 ];then return 1;fi
-    return 0;
+                              -s sub -w $(secret) "(objectclass=*)"| grep "^dn:" |wc -l)
+    if [ ${record_count} -gt 10 ];then return 0;fi
+    return 1;
 }
 
 signature_valid(){
