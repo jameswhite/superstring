@@ -1,6 +1,6 @@
 control:
     actionsequence   = ( packages copy processes editfiles links shellcommands files )
-    AddInstallable   = ( had_slapd bounce_slapd load_records )
+    AddInstallable   = ( had_slapd bounce_slapd load_records new_known_hosts )
  
 packages:
     ldap_server::
@@ -49,6 +49,7 @@ files:
         /etc/ldap/slapd_domains.conf mode=0644 owner=root group=root act=fixall
         /etc/ldap/rootpw.conf mode=400 owner=openldap group=openldap act=fixall
         /etc/ldap/domains mode=755 owner=openldap group=openldap act=fixall r=inf
+        /etc/ssh/ssh_known_hosts mode=755 owner=root group=root act=fixall
         /opt/ldap-data mode=755 owner=root group=root act=fixall
 
 links:
@@ -75,6 +76,9 @@ copy:
  
         $(configroot)/linux/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
             server=$(policyhost) type=sum owner=root group=root mode=0744 
+
+        $(configroot)/linux/etc/ssh/known_host-github.com dest=/etc/known_hosts-github.com
+            server=$(policyhost) type=sum owner=root group=root mode=0744 define=new_known_hosts
  
     ldap_client.debian::
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
@@ -100,6 +104,8 @@ processes:
         "nscd"      restart "/etc/init.d/nscd restart"
  
 shellcommands:
+    new_known_hosts::
+        "/bin/bash -c '/bin/cat /etc/ssh/known_hosts-* > /etc/ssh/ssh_known_hosts'"
     debian.ldap_server::
         "/bin/bash -c '/usr/bin/id openldap|/bin/grep -q ssl-cert||/usr/sbin/usermod -a -G ssl-cert openldap'"
         "/bin/bash -c '/bin/grep -q \"SHA\" /etc/ldap/rootpw.conf|| (echo -n \"rootpw   \" > /etc/ldap/rootpw.conf; /usr/sbin/slappasswd -h {SHA} -s `/usr/local/sbin/secret` >> /etc/ldap/rootpw.conf)'"
