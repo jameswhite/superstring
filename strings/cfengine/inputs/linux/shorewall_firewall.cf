@@ -34,7 +34,7 @@ copy:
 
 
 shellcommands:
-    new_shorewall_rules:
+    new_shorewall_rules::
         "/bin/bash -c '/usr/local/sbin/shorewall_newrules'"
         "/etc/init.d/shorewall restart"
 
