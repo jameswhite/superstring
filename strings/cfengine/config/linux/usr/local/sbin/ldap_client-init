@@ -1,0 +1,12 @@
+#!/bin/bash
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+DOMAIN=$(dnsdomainname)
+BASEDN="dc=$(echo ${DOMAIN}|sed -e 's/\./,dc=/g')"
+if [ -f /etc/libnss-ldap.conf ]; then mv /etc/libnss-ldap.conf.dist ;fi
+cat<<EOF>/etc/libnss-ldap.conf
+base ${BASEDN}
+uri ldap://127.0.0.1
+ldap_version 3
+rootbinddn cn=root,ou=Special Users,${BASEDN}
+scope sub
+EOF

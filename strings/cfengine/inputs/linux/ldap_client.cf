@@ -1,9 +1,10 @@
 control:
-    actionsequence   = ( packages copy processes editfiles )
+    actionsequence   = ( packages copy processes shellcommands files )
+
+files:
+    /etc/libnss-ldap.conf mode=400 owner=root group=root act=fixall
  
 packages:
-    ldap_server::
-        slapd            action=install
  
     ldap_client::
         nscd             action=install
@@ -11,13 +12,7 @@ packages:
         libpam-ldap      action=install
         ldap-utils       action=install
  
-editfiles:
-
 copy:
-    ldap_server.debian::
-        $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
-            server=$(policyhost) type=sum owner=root group=root mode=0444
- 
     ldap_client.debian::
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
         server=$(policyhost) type=sum owner=root group=root mode=0440
@@ -35,9 +30,11 @@ copy:
             server=$(policyhost) type=sum owner=root group=root mode=0444
  
 processes:
-    ldap_server::
-      "slapd"      restart "/etc/init.d/slapd restart"
- 
+
     ldap_client::
         "nscd"      restart "/etc/init.d/nscd restart"
  
+shellcommands:
+    debian.ldap_client::
+        "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
+        "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.conf ];then /usr/local/sbin/ldap_client-init;fi'"
