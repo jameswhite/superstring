@@ -2,7 +2,8 @@ control:
     actionsequence   = ( packages copy processes shellcommands files )
 
 files:
-    /etc/libnss-ldap.conf mode=400 owner=root group=root act=fixall
+    /etc/libnss-ldap.secret mode=400 owner=root group=root act=fixall
+    /etc/libnss-ldap.conf mode=444 owner=root group=root act=fixall
  
 packages:
  
@@ -37,4 +38,6 @@ processes:
 shellcommands:
     debian.ldap_client::
         "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
+        "/bin/bash -c 'if [ ! -s /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
         "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.conf ];then /usr/local/sbin/ldap_client-init;fi'"
+        "/bin/bash -c 'if [ ! -s /etc/libnss-ldap.conf ];then /usr/local/sbin/ldap_client-init;fi'"
