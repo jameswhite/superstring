@@ -2,6 +2,7 @@
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
 #/* Managed by cfengine */
 
+export HOME=\$(getent passwd \${USER}|awk -F: '{print \$6}')
 PATH="/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/sbin:/usr/local/sbin:/sbin"
 if [ ! -d ${HOME} ]; then
     echo "I see you've never logged in before. Setting up \$HOME"
