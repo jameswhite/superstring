@@ -77,7 +77,7 @@ copy:
         $(configroot)/linux/usr/local/sbin/addldapdomain dest=/usr/local/sbin/addldapdomain
             server=$(policyhost) type=sum owner=root group=root mode=0744 
 
-        $(configroot)/linux/etc/ssh/known_host-github.com dest=/etc/known_hosts-github.com
+        $(configroot)/linux/etc/ssh/known_hosts-github.com dest=/etc/known_hosts-github.com
             server=$(policyhost) type=sum owner=root group=root mode=0744 define=new_known_hosts
  
     ldap_client.debian::
