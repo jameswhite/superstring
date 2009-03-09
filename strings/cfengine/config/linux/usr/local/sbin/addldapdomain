@@ -57,8 +57,8 @@ overlay                 syncprov
 syncprov-checkpoint     1000 60
 
 # ~DOMAIN~ ACL Definition
-# give ldapsearch DN limitless searches
-limits dn.exact="cn=ldapsync,ou=Special,~LDAPDOMAIN~" time.soft=unlimited time.hard=unlimited size.soft=unlimited size.hard=unlimited
+# give ldap peers limitless searches
+limits group="cn=LDAP Servers,ou=Special,~LDAPDOMAIN~" time.soft=unlimited time.hard=unlimited size.soft=unlimited size.hard=unlimited
 
 access to attrs=userPassword,shadowLastChange
         by group/groupOfUniqueNames/UniqueMember.exact="cn=LDAP Administrators,ou=Special,~LDAPDOMAIN~" write

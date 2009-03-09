@@ -70,8 +70,8 @@ copy:
         $(configroot)/linux/etc/issue.net dest=/etc/issue.net
             server=$(policyhost) type=sum owner=root group=root mode=0444
 
-        $(configroot)/linux/etc/ssl/websages.cer dest=/etc/ssl/websages.cer
-            server=$(policyhost) type=sum owner=root group=root mode=0444
+        $(configroot)/linux/etc/locale.gen dest=/etc/locale.gen
+            server=$(policyhost) type=sum owner=root group=root mode=0444 
 
         $(configroot)/linux/etc/cron.weekly/apt-clean dest=/etc/cron.weekly/apt-clean
             server=$(policyhost) type=sum owner=root group=root mode=0755
