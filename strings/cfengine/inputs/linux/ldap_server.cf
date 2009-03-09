@@ -47,7 +47,7 @@ editfiles:
         { /etc/shorewall/rules
             BeginGroupIfNoLineContaining "ACCEPT net $FW tcp 636"
                 GotoLastLine
-                IncrementPointer "-1"
+                IncrementPointer "-3"
                 Append "ACCEPT net $FW tcp 636"
             EndGroup
         }
