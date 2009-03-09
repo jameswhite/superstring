@@ -48,7 +48,7 @@ editfiles:
             BeginGroupIfNoLineContaining "ACCEPT net $FW tcp 636"
                 GotoLastLine
                 IncrementPointer "-1"
-                InsertLine"ACCEPT net $FW tcp 636"
+                InsertLine "ACCEPT net $FW tcp 636"
             EndGroup
         }
         ## End public SSL firewall option
