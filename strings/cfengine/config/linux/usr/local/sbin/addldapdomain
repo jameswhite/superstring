@@ -70,6 +70,7 @@ access to dn.base="" by * read
 
 access to *
         by dn="cn=opt,ou=Special,~LDAPDOMAIN~" write
-        by * read
+        by users read
+        by * none
 
 ### END ~DOMAIN~ slapd section ###
