@@ -108,6 +108,7 @@ packages:
         cron-apt               action=install elsedefine=need_base_linux_packages
         libnet-ldap-perl       action=install elsedefine=need_base_linux_packages
         git-core               action=install elsedefine=need_base_linux_packages
+        locales                action=install elsedefine=need_base_linux_packages
 
     debian_4::
         ntp-simple             action=install elsedefine=need_base_debian_4_packages
