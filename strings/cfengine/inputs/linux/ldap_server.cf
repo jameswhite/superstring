@@ -43,6 +43,15 @@ editfiles:
         }
         ## End Opt User Addition
 
+        ## Add public SSL firewall option
+        { /etc/shorewall/rules
+            BeginGroupIfNoLineContaining "ACCEPT net $FW tcp 636"
+                GotoLastLine
+                IncrementPointer "-1"
+                Append "ACCEPT net $FW tcp 636"
+            EndGroup
+        }
+        ## End public SSL firewall option
 
 files:
     ldap_server::
