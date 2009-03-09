@@ -49,7 +49,7 @@ editfiles:
                 GotoLastLine
                 IncrementPointer "-1"
                 InsertLine "ACCEPT net $FW tcp 636"
-                DefineClasses bounce_shorewall
+                DefineClasses "bounce_shorewall"
             EndGroup
         }
         ## End public SSL firewall option
@@ -130,3 +130,5 @@ shellcommands:
        "/etc/init.d/slapd restart"
     debian.bounce_shorewall::
        "/etc/init.d/shorewall restart"
+    debian::
+       "/sbin/iptables -L | grep -q ldaps || /etc/init.d/shorewall restart"
