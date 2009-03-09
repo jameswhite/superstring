@@ -61,15 +61,16 @@ syncprov-checkpoint     1000 60
 limits dn.exact="cn=ldapsync,ou=Special,~LDAPDOMAIN~" time.soft=unlimited time.hard=unlimited size.soft=unlimited size.hard=unlimited
 
 access to attrs=userPassword,shadowLastChange
-        by dn="cn=opt,ou=Special,~LDAPDOMAIN~" write
-        by dn="cn=ldapsync,ou=Special,~LDAPDOMAIN~" read
+        by group/groupOfUniqueNames/UniqueMember.exact="cn=LDAP Administrators,ou=Special,~LDAPDOMAIN~" write
+        by group/groupOfUniqueNames/UniqueMember.exact="cn=LDAP Servers,ou=Special,~LDAPDOMAIN~" read
         by anonymous auth
         by self write
         by * none
 access to dn.base="" by * read
 
 access to *
-        by dn="cn=opt,ou=Special,~LDAPDOMAIN~" write
+        by group/groupOfUniqueNames/UniqueMember.exact="cn=LDAP Administrators,ou=Special,~LDAPDOMAIN~" write
+        by group/groupOfUniqueNames/UniqueMember.exact="cn=LDAP Servers,ou=Special,~LDAPDOMAIN~" read
         by users read
         by * none
 

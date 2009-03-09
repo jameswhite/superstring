@@ -47,6 +47,7 @@ use Data::Dumper;
 sub new{
 use Sys::Hostname;
 use Sys::Hostname::Long;
+use FileHandle;
     my $class = shift;
     my $construct = shift if @_;
     my $self = { };
@@ -56,6 +57,16 @@ use Sys::Hostname::Long;
     $self->{'cfg'}->{'hostname'}=~s/\..*//g;
     $self->{'cfg'}->{'domain'} = $self->{'cfg'}->{'fqdn'};
     $self->{'cfg'}->{'domain'} =~ s/^$self->{'cfg'}->{'hostname'}\.//;
+    $self->{'cfg'}->{'base_dn'} =  $self->{'cfg'}->{'domain'};
+    $self->{'cfg'}->{'base_dn'} =~ s/^/dc=/;
+    $self->{'cfg'}->{'base_dn'} =~ s/\./,dc=/;
+    if(-f "/usr/local/sbin/secret"){
+        my $sech = new FileHandle;
+        if($sech->open("/usr/local/sbin/secret|")){
+            $self->{'cfg'}->{'secret'}=<$sech>;
+            $sech->close;
+        }
+    }
     if($self->{'cfg'}->{'domain'} ne ""){ 
         return $self;
     }
@@ -176,10 +187,17 @@ use Net::LDAP;
     my $self=shift;
     my $setup=shift;
     my $returnlist;
-    my $ldap = Net::LDAP->new( $setup->{'host'} ) or warn "$@";
+    my $ldap = Net::LDAP->new( $setup->{'host'}, timeout => 10) or warn "$@";
     my $mesg;
     if($ldap){
-        $mesg = $ldap->bind ;    # an anonymous bind
+        if(defined($self->{'cfg'}->{'secret'})){
+           $mesg = $ldap->bind(
+                                "cn=$self->{'cfg'}->{'hostname'},ou=Hosts,$self->{'cfg'}->{'base_dn'}",
+                                password=> $self->{'cfg'}->{'secret'} 
+                              );
+        }else{
+            $mesg = $ldap->bind;    # an anonymous bind
+        }
         $mesg = $ldap->search( base => $setup->{'basedn'},scope=>'base',filter => "($setup->{'search'})");
         $mesg->code && warn $mesg->error;
         foreach my $entry ($mesg->entries) { push(@{$returnlist},$entry); }
