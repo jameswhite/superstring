@@ -49,8 +49,8 @@ editfiles:
                 GotoLastLine
                 IncrementPointer "-1"
                 InsertLine "ACCEPT net $FW tcp 636"
-                DefineClasses "bounce_shorewall"
             EndGroup
+            DefineClasses "bounce_shorewall"
         }
         ## End public SSL firewall option
 
