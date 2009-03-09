@@ -4,6 +4,7 @@ control:
 files:
     /etc/libnss-ldap.secret mode=400 owner=root group=root act=fixall
     /etc/libnss-ldap.conf mode=444 owner=root group=root act=fixall
+    /usr/local/sbin/ldap_client-init mode=744 owner=root group=root act=fixall
  
 packages:
  
@@ -16,7 +17,7 @@ packages:
 copy:
     ldap_client.debian::
         $(configroot)/linux/usr/local/sbin/ldap_client-init dest=/usr/local/sbin/ldap_client-init
-        server=$(policyhost) type=sum owner=root group=root mode=0444
+        server=$(policyhost) type=sum owner=root group=root mode=0744
  
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
         server=$(policyhost) type=sum owner=root group=root mode=0440
