@@ -15,6 +15,9 @@ packages:
  
 copy:
     ldap_client.debian::
+        $(configroot)/linux/usr/local/sbin/ldap_client-init dest=/usr/local/sbin/ldap_client-init
+        server=$(policyhost) type=sum owner=root group=root mode=0444
+ 
         $(configroot)/linux/etc/pam.d/debian__common-auth dest=/etc/pam.d/common-auth
         server=$(policyhost) type=sum owner=root group=root mode=0440
  
@@ -39,5 +42,4 @@ shellcommands:
     debian.ldap_client::
         "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
         "/bin/bash -c 'if [ ! -s /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
-        "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.conf ];then /usr/local/sbin/ldap_client-init;fi'"
-        "/bin/bash -c 'if [ ! -s /etc/libnss-ldap.conf ];then /usr/local/sbin/ldap_client-init;fi'"
+        "/bin/grep -q '$(base_dn)' /etc/libnss-ldap.conf || /usr/local/sbin/ldap_client-init"
