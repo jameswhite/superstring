@@ -1,6 +1,6 @@
 control:
     actionsequence   = ( packages copy processes editfiles links shellcommands files )
-    AddInstallable   = ( had_slapd bounce_slapd load_records new_known_hosts )
+    AddInstallable   = ( had_slapd bounce_slapd bounce_shorewall load_records new_known_hosts )
  
 packages:
     ldap_server::
@@ -127,3 +127,5 @@ shellcommands:
         "/bin/bash -c 'if [ ! -f /etc/ldap/slapd_domains.conf ]; then /usr/bin/touch /etc/ldap/slapd_domains.conf; fi'"
     debian.bounce_slapd::
        "/etc/init.d/slapd restart"
+    debian.bounce_shorewall::
+       "/etc/init.d/shorewall restart"
