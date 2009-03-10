@@ -47,7 +47,6 @@ checkpoint      512 30
 rootdn          "cn=root,ou=Special Users,~LDAPDOMAIN~"
 include         /etc/ldap/rootpw.conf
 directory       /opt/ldap-data/~DOMAIN~
-replogfile      /opt/ldap-data/~DOMAIN~/replog
 index objectClass       eq
 
 # ~DOMAIN~ LDAP Options
