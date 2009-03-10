@@ -25,7 +25,7 @@ fi
 # Include the domain config file in the latest config
 #
 grep -q "include /etc/ldap/domains/${DOMAIN}_slapd.conf" /etc/ldap/slapd_domains.conf || \
-    echo "include /etc/ldap/domains/${DOMAIN}_slapd.conf" > /etc/ldap/slapd_domains.conf
+    echo "include /etc/ldap/domains/${DOMAIN}_slapd.conf" >> /etc/ldap/slapd_domains.conf
 
 #
 # Write out the domain config file
