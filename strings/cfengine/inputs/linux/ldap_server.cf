@@ -69,8 +69,14 @@ links:
 
 copy:
     ldap_server.debian.had_slapd::
+        $(configroot)/linux/etc/ldap/schema/dnszone.schema dest=/etc/ldap/schema/dnszone.schema
+            server=$(policyhost) type=sum owner=root group=root mode=0444
+
         $(configroot)/linux/etc/ldap/schema/websages.schema dest=/etc/ldap/schema/websages.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
+
+        $(configroot)/linux/etc/init.d/slapd dest=/etc/init.d/slapd
+            server=$(policyhost) type=sum owner=root group=root mode=0744
 
         $(configroot)/linux/etc/default/slapd dest=/etc/default/slapd
             server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd

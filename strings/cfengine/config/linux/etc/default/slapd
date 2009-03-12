@@ -15,7 +15,7 @@ SLAPD_GROUP="openldap"
 # Path to the pid file of the slapd server. If not set the init.d script
 # will try to figure it out from $SLAPD_CONF (/etc/ldap/slapd.conf by
 # default)
-SLAPD_PIDFILE=
+SLAPD_PIDFILE=/var/run/slapd/slapd.pid
 
 # slapd normally serves ldap only on all TCP-ports 389. slapd can also
 # service requests on TCP-port 636 (ldaps) and requests via unix
