@@ -1,7 +1,8 @@
 deb http://www.backports.org/debian/ lenny-backports main
 deb http://ftp.us.debian.org/debian/ stable main non-free
-#deb http://wcyd.org websages main
 deb http://security.debian.org/ stable/updates main non-free
+deb http://apt.websages.com/ lenny-wcyd main
 
-deb-src http://www.backports.org/debian/ lenny-backports main
 deb-src http://ftp.us.debian.org/debian/ stable main
+deb-src http://www.backports.org/debian/ lenny-backports main
+
