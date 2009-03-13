@@ -1,84 +1,11 @@
 Package: *
+Pin: release a=lenny-wcyd
+Pin-Priority: 999
+
+Package: *
 Pin: release a=lenny-backports
 Pin-Priority: 200
 
 Package: *
-Pin: release a=lenny-wcyd
-Pin-Priority: 200
-
-Package: bind9-doc
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: bind9-host
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: bind9utils
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: bind9
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: dnsutils
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: ldap-utils
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libbind-dev
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libbind9-40
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libdns45
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libisc45
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libisccc40
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libisccfg40
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libldap-2.4-2-dbg
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libldap-2.4-2
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: libldap2-dev
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: liblwres40
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: lwresd
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: slapd-dbg
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
-Package: slapd
-Pin: release a=lenny-wcyd,v=*wcyd*
-Pin-Priority: 999
-
+Pin: release a=lenny
+Pin-Priority: 100
