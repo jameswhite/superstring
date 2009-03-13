@@ -1,5 +1,5 @@
 control:
-    actionsequence   = ( packages copy processes shellcommands files )
+    actionsequence   = ( packages copy processes shellcommands files editfiles )
 
 files:
     /etc/libnss-ldap.secret mode=400 owner=root group=root act=fixall
@@ -13,6 +13,12 @@ packages:
         libnss-ldap      action=install
         libpam-ldap      action=install
         ldap-utils       action=install
+
+editfiles:
+    debian::
+        { /etc/ldap/ldap.conf
+            AppendIfNoSuchLine "TLS_REQCERT allow"
+        }
  
 copy:
     ldap_client.debian::
