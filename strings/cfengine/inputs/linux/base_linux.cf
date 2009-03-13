@@ -132,7 +132,7 @@ tidy:
 shellcommands:
      debian::
          "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http\://backports.org/debian/archive.key | /usr/bin/apt-key add -"
-         "/usr/bin/apt-key list | grep "James S. White"||(gpg --recv-keys E8FDD50D46940910;gpg --export E8FDD50D46940910| /usr/bin/apt-key add -)"
+         "/bin/bash -c '/usr/bin/apt-key list|grep "James S. White"||(gpg --recv-keys E8FDD50D46940910;gpg --export E8FDD50D46940910| /usr/bin/apt-key add -)'"
 
      update_apt::
         "/usr/bin/apt-get update"
