@@ -5,6 +5,7 @@ rm -fr /dev/shm/certificate.*
 # dpkg: dns-browse openssl gpg
 ###################################################################
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/usr/local/sbin:/sbin"
+if [ -f /usr/local/sbin/gpg-init ];then /usr/local/sbin/gpg-init;fi
 for elf in `echo "dig openssl gpg"`; do 
     if [ -z $(which ${elf}) ];then 
         echo "${elf} not found. Aborting...";
