@@ -71,5 +71,7 @@ echo -e "trust\n5\n"|gpg --command-fd 0 --status-fd 2 --edit-key ${PGP_KEYID}
 #########################################################################
 # Make apt trust packages signed with these keys
 #########################################################################
-/usr/bin/apt-key list|grep -q "${PGP_KEYID}"||/usr/bin/gpg --export ${PGP_KEYID}|/usr/bin/apt-key add -
-
+if [ -f /etc/debian_version ];then
+    /usr/bin/apt-key list|grep -q "${PGP_KEYID}"||/usr/bin/gpg --export ${PGP_KEYID}|/usr/bin/apt-key add -
+fi
+# do something similar for yum here...
