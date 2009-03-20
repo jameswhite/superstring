@@ -20,6 +20,13 @@ fi
 if [ -z ${SECRET_PASSPHRASE} ];then
     if [ -x /usr/local/sbin/secret ]; then
         export SECRET_PASSPHRASE=$(/usr/local/sbin/secret)
+    else if [ -x /usr/local/sbin/secret-init ]; then
+             /usr/local/sbin/secret-init
+             $0 $* 
+             exit 0;
+         else 
+             echo "cannot proceed without /usr/local/sbin/secret-init"
+         fi
     fi
     if [ -z ${SECRET_PASSPHRASE} ];then
         logger -p local5.error -- "$0[$$] environment SECRET_PASSPHRASE not set. Aborting..."
@@ -49,4 +56,20 @@ umask ${PREUMSK}
 gpg --batch --gen-key ${TMPFILE} > /var/log/gpg-keygen.log \
     2> /var/log/gpg-keygen_error.log
 rm ${TMPFILE}
+#########################################################################
+# Now that we have our personal keys, import some trusted public ones...
+#########################################################################
+DOMAIN=$(/bin/dnsdomainname)
+PGP_KEYSERVER=$(dig +short -t txt pgp-keyserver.${DOMAIN}|sed -e's/"//g')
+PGP_KEYID=$(dig +short -t txt pgp-keyid.${DOMAIN}|sed -e's/"//g')
+gpg --list-keys | grep -q "^pub.*${PGP_KEYID}" || \
+    gpg --keyserver ${PGP_KEYSERVER} --recv-keys ${PGP_KEYID}
+echo -e "y\n${SECRET_PASSPHRASE}\n"|gpg --command-fd 0 --status-fd 2 \
+                             --lsign-key ${PGP_KEYID}
+echo -e "trust\n5\n"|gpg --command-fd 0 --status-fd 2 --edit-key ${PGP_KEYID}
+
+#########################################################################
+# Make apt trust packages signed with these keys
+#########################################################################
+/usr/bin/apt-key list|grep -q "${PGP_KEYID}"||/usr/bin/gpg --export ${PGP_KEYID}|/usr/bin/apt-key add -
 
