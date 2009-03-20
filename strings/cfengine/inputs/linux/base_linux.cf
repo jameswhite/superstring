@@ -4,8 +4,9 @@ control:
         DefaultPkgMgr      = ( dpkg )
         pkgmgr             = ( dpkg )
         DPKGInstallCommand = ( "/usr/bin/apt-get -y install %s" )
-        domain__keyserver  = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyserver.$(domain)|sed -e s'/\"//g'") )
-        domain_keyid       = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyid.$(domain)|sed -e s'/\"//g'") )
+        domain             = ( ExecResult("/bin/dnsdomainname") )
+        domain_keyserver   = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyserver.${domain} | sed -e s'/\"//g'") )
+        domain_keyid       = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyid.${domain} | sed -e s'/\"//g'") )
         AddInstallable     = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
 
 files:
