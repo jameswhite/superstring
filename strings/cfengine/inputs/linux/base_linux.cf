@@ -1,11 +1,12 @@
 control:
-    actionsequence            = ( packages editfiles copy processes files tidy shellcommands )
+    actionsequence         = ( packages editfiles copy processes files tidy shellcommands )
     debian::
-        DefaultPkgMgr         = ( dpkg )
-        pkgmgr                = ( dpkg )
-        DPKGInstallCommand    = ( "/usr/bin/apt-get -y install %s" )
-        AddInstallable        = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
-
+        DefaultPkgMgr      = ( dpkg )
+        pkgmgr             = ( dpkg )
+        DPKGInstallCommand = ( "/usr/bin/apt-get -y install %s" )
+        domain__keyserver  = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyserver.$(domain)|sed -e s'/\"//g'") )
+        domain_keyid       = ( ExecResult("/usr/bin/dig +short -t txt pgp-keyid.$(domain)|sed -e s'/\"//g'") )
+        AddInstallable     = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
 
 files:
     debian:: 
@@ -132,7 +133,7 @@ tidy:
 shellcommands:
      debian::
          "/usr/bin/apt-key list|/bin/grep -q \"Backports.org Archive Key\"||/usr/bin/wget -O - http\://backports.org/debian/archive.key | /usr/bin/apt-key add -"
-         "/bin/bash -c '/usr/bin/apt-key list|grep \"James S. White\"||\(/usr/bin/gpg --recv-keys E8FDD50D46940910;/usr/bin/gpg --export E8FDD50D46940910| /usr/bin/apt-key add -\)'"
+         "/bin/bash -c '/usr/bin/apt-key list|grep $(domain_keyid)||\(/usr/bin/gpg --recv-keys $(domain_keyid);/usr/bin/gpg --export $(domain_keyid)| /usr/bin/apt-key add -\)'"
 
      update_apt::
         "/usr/bin/apt-get update"
