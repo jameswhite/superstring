@@ -6,8 +6,8 @@
 # /etc/cfengine/cfservd.conf, even if you set RUN_CFSERVD.
 
 RUN_CFSERVD=1
-RUN_CFEXECD=0
-RUN_CFENVD=0
+RUN_CFEXECD=1
+RUN_CFENVD=1
 
 CFSERVD_ARGS=""
 #CFSERVD_ARGS="--multithread"
