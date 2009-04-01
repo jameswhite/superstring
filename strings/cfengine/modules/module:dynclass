@@ -244,15 +244,13 @@ if($ss){
     $ss->get_dns_records();
     if(defined($ss->ldap_servers())){
         $ss->host_ldap_record($ss->fqdomain());
-        foreach my $records ( @{ $ss->{'cfg'}->{'ldap'}->{'hostrecord'} }){
-            foreach my $entry ( @{ $records }){
-                foreach my $attr ( $entry->attributes ){
-                    if($attr =~ /^configSet$/i){
-                        $ss->add_classes($entry->get_value( $attr ));
-                    }
-                    if($attr =~ /^configBase$/i){
-                        $ss->add_classes($entry->get_value( $attr ));
-                    }
+        foreach my $entry ( @{ $ss->{'cfg'}->{'ldap'}->{'hostrecord'} }){
+            foreach my $attr ( $entry->attributes ){
+                if($attr =~ /^configSet$/i){
+                    $ss->add_classes($entry->get_value( $attr ));
+                }
+                if($attr =~ /^configBase$/i){
+                    $ss->add_classes($entry->get_value( $attr ));
                 }
             }
         }
