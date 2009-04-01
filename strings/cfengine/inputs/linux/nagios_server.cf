@@ -2,7 +2,7 @@ control:
         actionsequence          = ( packages )
 
 packages:
-    debian_4.nagios_poll::
+    debian_5.nagios_poll::
         nagios3                     action=install
         nagios3-common              action=install
         nagios-images               action=install
