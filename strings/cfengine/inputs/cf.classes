@@ -1,7 +1,0 @@
-groups:
-    # These should be defined buy module:dynclass except in the case of absolutes
-    certificate_authority   = ( core_server )
-    ldap_server             = ( core_server )
-    cfengine_server         = ( core_server )
-    vpn_router              = ( core_server )
-    ldap_client             = ( ldap_server )
