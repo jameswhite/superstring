@@ -3,7 +3,7 @@ control:
     debian::
         DefaultPkgMgr      = ( dpkg )
         pkgmgr             = ( dpkg )
-        DPKGInstallCommand = ( "/usr/bin/apt-get update && /usr/bin/apt-get -y install %s" )
+        DPKGInstallCommand = ( "/usr/bin/apt-get -y install %s" )
         AddInstallable     = ( update_apt need_base_linux_packages need_base_debian_4_packages need_base_debian_5_packages )
 
 files:
