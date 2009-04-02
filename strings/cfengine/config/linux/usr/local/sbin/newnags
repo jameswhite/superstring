@@ -1,0 +1,31 @@
+#!/bin/bash
+export PATH="/bin:/sbin/:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+GITROOT="/var/cache/git"
+if [ ! -d ${GITROOT} ];then mkdir -p ${GITROOT}; fi
+if [ ! -d ${GITROOT}/websages ];then 
+    (cd /opt/git; git clone git@github.com:fapestniegd/websages.git)
+else 
+    (cd /opt/git/websages; git pull)
+fi
+
+# backup last
+(cd /etc/nagios; tar cvzf nagios-old.tgz $(ls ${GITROOT}/websages/ghetto/monitoring/))
+BOUNCE=0
+for f in `ls ${GITROOT}/websages/ghetto/monitoring/`;do
+    one=$(md5sum ${GITROOT}/websages/ghetto/monitoring/${f})
+    two=$(md5sum /etc/nagios/${f})
+    if ["${one}" != "${two}"]; then BOUNCE=1;fi
+done
+rsync -avzP ${GITROOT}/websages/ghetto/monitoring/ /etc/nagios/
+nagios -v /etc/nagios/nagios.cfg
+if [ $? -eq 0 ]; then 
+    if [ $BOUNCE -eq 1 ];then 
+        /etc/init.d/nagios restart
+    else 
+        echo "nothing changed"
+    fi
+else
+    # Roll it back
+    nagios -v /etc/nagios/nagios.cfg > /var/log/newnag.lasterr
+    (cd /etc/nagios; tar xvzf nagios-old.tgz)
+fi
