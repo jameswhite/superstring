@@ -15,6 +15,7 @@ packages:
 links:
     debian_5.nagios_poll::
         /etc/nagios -> /etc/nagios3 type=symbolic
+        /usr/sbin/nagios -> /usr/sbin/nagios3 type=symbolic
 
 copy:
     debian_5.nagios_poll::
