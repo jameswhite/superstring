@@ -1,5 +1,5 @@
 control:
-        actionsequence          = ( packages )
+        actionsequence          = ( links packages copy shellcommands )
 
 packages:
     debian_5.nagios_poll::
@@ -20,5 +20,8 @@ copy:
     debian_5.nagios_poll::
         $(configroot)/linux/usr/local/sbin/newnags  dest=/usr/local/sbin/newnags
          owner=root group=root mode=744 type=binary server=$(policyhost) trustkey=true
+shellcommands:
+    debian_5.nagios_poll::
+        "/usr/local/sbin/newnags"
 
 
