@@ -12,3 +12,13 @@ packages:
         nagios-snmp-plugins         action=install
         nagios3-doc                 action=install
 
+links:
+    debian_5.nagios_poll::
+        /etc/nagios -> /etc/nagios3 type=symbolic
+
+copy:
+    debian_5.nagios_poll::
+        $(configroot)/linux/usr/local/sbin/newnags  dest=/usr/local/sbin/newnags
+         owner=root group=root mode=744 type=binary server=$(policyhost) trustkey=true
+
+
