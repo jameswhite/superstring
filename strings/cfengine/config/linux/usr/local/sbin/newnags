@@ -3,9 +3,9 @@ export PATH="/bin:/sbin/:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 GITROOT="/var/cache/git"
 if [ ! -d ${GITROOT} ];then mkdir -p ${GITROOT}; fi
 if [ ! -d ${GITROOT}/websages ];then 
-    (cd /opt/git; git clone git@github.com:fapestniegd/websages.git)
+    (cd ${GITROOT}; git clone git@github.com:fapestniegd/websages.git)
 else 
-    (cd /opt/git/websages; git pull)
+    (cd ${GITROOT}/websages; git pull)
 fi
 
 # backup last
