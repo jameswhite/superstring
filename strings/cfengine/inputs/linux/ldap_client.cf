@@ -49,4 +49,4 @@ shellcommands:
     debian.ldap_client::
         "/bin/bash -c 'if [ ! -f /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
         "/bin/bash -c 'if [ ! -s /etc/libnss-ldap.secret ];then umask 0377; /usr/local/sbin/secret > /etc/libnss-ldap.secret;fi'"
-        "/bin/grep -q 'base $(base_dn)' /etc/libnss-ldap.conf || /usr/local/sbin/ldap_client-init"
+        "/bin/bash -c '/bin/grep -q \'base $(base_dn)\' /etc/libnss-ldap.conf || /usr/local/sbin/ldap_client-init'"
