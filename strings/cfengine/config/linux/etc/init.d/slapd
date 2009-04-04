@@ -193,8 +193,11 @@ stop_ldap() {
 case "$1" in
   start)
 	check_for_no_start
-  	start_ldap ;;
+  	start_ldap 
+        /etc/init.d/bind9 restart
+        ;;
   stop)
+        /etc/init.d/bind9 stop
   	stop_ldap ;;
   restart|force-reload)
 	check_for_no_start
