@@ -12,7 +12,7 @@ slapd_binding(){
     ldapsearch -xLh 127.0.0.1 \
                -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
-               -s sub -w $(secret) "(objectclass=*)" >/dev/null 2>&1
+               -s sub -w $(ldap_secret) "(objectclass=*)" >/dev/null 2>&1
     EXIT=$?
     if [ ${EXIT} -eq 32 ]; then return 0; fi
     return ${EXIT}
@@ -22,7 +22,7 @@ ldap_populated(){
     record_count=$(ldapsearch -xLh 127.0.0.1 \
                               -b "dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
                               -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
-                              -s sub -w $(secret) "(objectclass=*)"| grep "^dn:" |wc -l)
+                              -s sub -w $(ldap_secret) "(objectclass=*)"| grep "^dn:" |wc -l)
     if [ ${record_count} -gt 5 ];then return 0;fi
     return 1;
 }
@@ -61,7 +61,7 @@ populate_ldap(){
                 }' /var/cache/git/${REPO_NAME}/${PATH_PART} > ${TMP_FILE}
            ldapadd -xh 127.0.0.1 \
                    -D "cn=root,ou=Special Users,dc=$(dnsdomainname|sed -e's/\./,dc=/g')" \
-                   -w $(secret) \
+                   -w $(ldap_secret) \
                    -f ${TMP_FILE}
            rm ${TMP_FILE}     
         else
