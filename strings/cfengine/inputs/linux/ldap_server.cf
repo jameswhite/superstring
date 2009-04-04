@@ -84,9 +84,6 @@ copy:
         $(configroot)/linux/etc/ldap/schema/qmail.schema dest=/etc/ldap/schema/qmail.schema
             server=$(policyhost) type=sum owner=root group=root mode=0444
 
-        $(configroot)/linux/etc/ldap/slapd.conf dest=/etc/ldap/slapd.conf
-            server=$(policyhost) type=sum owner=root group=root mode=0444 define=bounce_slapd
-
         $(configroot)/linux/usr/local/sbin/ldap-init dest=/usr/local/sbin/ldap-init
             server=$(policyhost) type=sum owner=root group=root mode=0744 
  
@@ -126,7 +123,6 @@ shellcommands:
     debian.ldap_server::
         "/bin/bash -c '/usr/bin/id openldap|/bin/grep -q ssl-cert||/usr/sbin/usermod -a -G ssl-cert openldap'"
         "/bin/bash -c '/bin/grep -q \"SHA\" /etc/ldap/rootpw.conf|| (echo -n \"rootpw   \" > /etc/ldap/rootpw.conf; /usr/sbin/slappasswd -h {SHA} -s `/usr/local/sbin/secret` >> /etc/ldap/rootpw.conf)'"
-        "/bin/bash -c 'if [ ! -f /etc/ldap/domains/$(domain)_slapd.conf ];then /usr/local/sbin/addldapdomain $(domain);fi'"
     debian.ldap_server.debian.had_slapd::
         "/bin/bash -c '/usr/local/sbin/ldap-init'"
         
