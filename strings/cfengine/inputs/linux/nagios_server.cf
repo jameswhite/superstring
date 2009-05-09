@@ -18,11 +18,11 @@ links:
         /usr/sbin/nagios -> /usr/sbin/nagios3 type=symbolic
 
 copy:
-    debian_5.nagios_poll::
-        $(configroot)/linux/usr/local/sbin/newnags  dest=/usr/local/sbin/newnags
-         owner=root group=root mode=744 type=binary server=$(policyhost) trustkey=true
+#    debian_5.nagios_poll::
+#        $(configroot)/linux/usr/local/sbin/newnags  dest=/usr/local/sbin/newnags
+#         owner=root group=root mode=744 type=binary server=$(policyhost) trustkey=true
 shellcommands:
     debian_5.nagios_poll::
-        "/usr/local/sbin/newnags"
+        "if [ -f '/usr/local/sbin/newnags' ]; then rm /usr/local/sbin/newnags; fi"
 
 
