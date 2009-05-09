@@ -1,28 +1,28 @@
 #!/bin/bash
 CFETC="/etc/cfengine"
 CFLIB="/var/lib/cfengine2"
+GITCACHE="/var/cache/git"
 MASTERFILES="${CFLIB}/masterfiles"
-GITROOT="${CFLIB}/gitroot"
-export CFETC CFLIB MASTERFILES GITROOT
+export CFETC CFLIB MASTERFILES GITCACHE
 
 if [ ! -d ${MASTERFILES} ]; then mkdir -p ${MASTERFILES}; fi
 if [ ! -d ${CFETC} ]; then mkdir -p ${CFETC}; fi
-if [ ! -d ${GITROOT} ]; then mkdir -p ${GITROOT};fi 
+if [ ! -d ${GITCACHE} ]; then mkdir -p ${GITCACHE};fi 
 
-cd ${GITROOT}
+cd ${GITCACHE}
 
 # order of the repos matter, the last will clobber the first... can we even order in LDAP?
 # /*FIXME*/ ldapsearch here for all repositories
 GITREPOS="git://github.com/fapestniegd/wcyd.git git://github.com/fapestniegd/superstring.git"
 for repo in `echo "${GITREPOS}"`; do 
     repodir=$(/usr/bin/basename  ${repo}|sed -e 's/\.git$//g')
-    if [ ! -d ${GITROOT}/${repodir}/.git ]; then
-        if [ -d ${GITROOT}/${repodir} ]; then rm -fr ${GITROOT}/${repodir}; fi
+    if [ ! -d ${GITCACHE}/${repodir}/.git ]; then
+        if [ -d ${GITCACHE}/${repodir} ]; then rm -fr ${GITCACHE}/${repodir}; fi
         /usr/bin/git clone ${repo} > /dev/null 2>&1
     else 
-        (cd ${GITROOT}/${repodir}; git pull > /dev/null 2>&1)
+        (cd ${GITCACHE}/${repodir}; git pull > /dev/null 2>&1)
     fi
-    if [ -d ${GITROOT}/${repodir}/strings/cfengine ];then
-        /usr/bin/rsync -aqzPC --delete ${GITROOT}/${repodir}/strings/cfengine/ ${MASTERFILES}/ 
+    if [ -d ${GITCACHE}/${repodir}/strings/cfengine ];then
+        /usr/bin/rsync -aqzPC --delete ${GITCACHE}/${repodir}/strings/cfengine/ ${MASTERFILES}/ 
     fi
 done
