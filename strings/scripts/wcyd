@@ -111,9 +111,10 @@ puppet_init(){
     [ -d /var/cache/git/websages ]    || (cd /var/cache/git; git clone git@github.com:fapestniegd/websages.git)
     [ -d /var/cache/git/superstring ] || (cd /var/cache/git; git clone git://github.com/fapestniegd/superstring.git)          
     [ -d /var/cache/git/wcyd ]        || (cd /var/cache/git; git clone git://github.com/fapestniegd/wcyd.git)          
+    [ -d /var/log/puppet ]            || /bin/mkdir -p /var/log/puppet
     puppet --debug --modulepath=/var/cache/git/websages/etc/puppet/modules/ \
            /var/cache/git/websages/etc/puppet/hosts/$(hostname -f).pp \
-           > /var/log/puppet.firstrun.out 2>&1
+           > /var/log/puppet/firstrun.out 2>&1
 }
 
 
