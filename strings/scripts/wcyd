@@ -114,7 +114,7 @@ puppet_init(){
     [ -d /var/log/puppet ]            || /bin/mkdir -p /var/log/puppet
     puppet --debug --modulepath=/var/cache/git/websages/etc/puppet/modules/ \
            /var/cache/git/websages/etc/puppet/hosts/$(hostname -f).pp \
-           > /var/log/puppet/firstrun.out 2>&1
+           > /var/log/puppet/firstrun.log 2>&1
 }
 
 
