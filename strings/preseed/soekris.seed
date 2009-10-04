@@ -2,50 +2,25 @@
 ### Localization
 # Locale sets language and country.
 d-i debian-installer/locale string en_US
-
 # Keyboard selection.
 d-i console-keymaps-at/keymap select us
 
 ### Network configuration
-# netcfg will choose an interface that has link if possible. This makes it
-# skip displaying a list if there is more than one interface.
-# doesn't work for blade servers :(
-#d-i netcfg/choose_interface select auto
-
-# To pick a particular interface instead:
-#d-i netcfg/choose_interface select eth0
-#d-i netcfg/choose_interface select eth1
-
-# If you have a slow dhcp server and the installer times out waiting for
-# it, this might be useful.
-#d-i netcfg/dhcp_timeout string 60
+d-i netcfg/choose_interface select eth0
 
 ### Mirror settings
 d-i mirror/country string manual
 d-i mirror/http/hostname string http.us.debian.org
 d-i mirror/http/directory string /debian
-#d-i mirror/http/proxy string	http://web-proxy:3128/
 
 # Suite to install.
-d-i mirror/suite string etch
+d-i mirror/suite string lenny
 
 ### Partitioning
-# Alternatively, you can specify a disk to partition. The device name
-# can be given in either devfs or traditional non-devfs format.
-# For example, to use the first disk:
-# We hard code the smartarray device
-d-i partman-auto/disk string /dev/cciss/c0d0
-# In addition, you'll need to specify the method to use.
-# The presently available methods are: "regular", "lvm" and "crypto"
+d-i partman-auto/disk string /dev/hda
 d-i partman-auto/method string regular
-
-# If one of the disks that are going to be automatically partitioned
-# contains an old LVM configuration, the user will normally receive a
-# warning. This can be preseeded away...
 d-i partman-auto/purge_lvm_from_device boolean true
-# And the same goes for the confirmation to write the lvm partitions.
 d-i partman-lvm/confirm boolean true
-
 # You can choose from any of the predefined partitioning recipes.
 # Note: this must be preseeded with a localized (translated) value.
 d-i partman-auto/choose_recipe \
