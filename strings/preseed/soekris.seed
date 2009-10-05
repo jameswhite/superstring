@@ -22,14 +22,14 @@ d-i partman-auto/method string regular
 d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman-lvm/confirm boolean true
 d-i partman-auto/expert_recipe string                         \
-      root ::                                                 \
-              500 10000 1000000000 ext3                       \
+      root-swap ::                                            \
+              500 1000 100000000 ext3                         \
                       $primary{ } $bootable{ }                \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext3 }    \
                       mountpoint{ / }                         \
-              48 96 200% linux-swap                          \
-                      method{ swap } format{ }                \
+              100% 100 200% linux-swap                        \
+                      $primary{ } method{ swap } format{ }    \
               .
 # This makes partman automatically partition without confirmation.
 d-i partman/confirm_write_new_label boolean true
