@@ -1,0 +1,76 @@
+#!/bin/bash
+TGTISO="$1"
+# TGTISO="/opt/store/fai-cd-3.2.16.iso"
+SRCDIR="/opt/store/linux/debian/lenny"
+MNTDIR="/mnt/loop"
+################################################################################
+# gather the pieces
+################################################################################
+echo "Gathering sources"
+if [ ! -f "${SRCDIR}/fai-cd-3.2.16.iso" ];then
+    wget -O "${SRCDIR}/fai-cd-3.2.16.iso" \
+        http://www.informatik.uni-koeln.de/fai/fai-cd/fai-cd-3.2.16.iso
+fi
+MD5=$(md5sum "${SRCDIR}/fai-cd-3.2.16.iso"|awk '{print $1}')
+if [ "${MD5}" != "e8ceefa8bf42243ad877776b6115690b" ]; then 
+    echo "md5sum mismatch"
+    echo "${MD5} e8ceefa8bf42243ad877776b6115690b"
+    exit;
+fi
+if [ ! -d /var/cache/git/superstring ]; then
+    if [ ! -d /var/cache/git ]; then
+        mkdir -p /var/cache/git
+    fi
+    (cd /var/cache/git; git clone git://github.com/fapestniegd/superstring.git)
+else
+    GIT_RESULT=$(cd /var/cache/git/superstring; git pull 2>&1)
+    if [  ! "${GIT_RESULT}" == "Already up-to-date." ];then
+        echo $(cd /var/cache/git/superstring; git log|head -1)
+    fi
+fi
+
+if [ ! -f "${SRCDIR}/fai-cd-3.2.16.iso" ]; then
+    echo "Could not fetch the iso image source"
+    exit
+fi
+
+if [ ! -d /var/cache/git/superstring ];then
+    echo "Could not fetch github sources"
+    exit
+fi
+
+################################################################################
+# Merge the components
+################################################################################
+echo "Unpacking sources"
+if [ ! -d "${MNTDIR}" ];then mkdir -p "${MNTDIR}"; fi
+sudo mount -o loop ${SRCDIR}/fai-cd-3.2.16.iso ${MNTDIR}
+TMPDIR=$(mktemp -d /var/tmp/fai_cd.XXXX)
+rsync -aqzPH ${MNTDIR}/ ${TMPDIR}/
+echo "Merging sources"
+rsync -aqzP /var/cache/git/superstring/base_systems/fai/config/ \
+            ${TMPDIR}/live/filesystem.dir/var/lib/fai/config/
+rsync -aqzP /var/cache/git/superstring/base_systems/fai/grub/ \
+            ${TMPDIR}/boot/grub/
+umount ${MNTDIR}
+
+################################################################################
+# Build the ISO
+################################################################################
+echo "Creating ISO"
+if [ -f "${TGTISO}" ];then rm "${TGTISO}";fi
+mkisofs -V "Fully Automatic Installation CD" \
+        -A "Fully Automatic Installation by Thomas Lange 3.2.16-superstring -- build $(date '+%c')" \
+        -log-file /dev/null -quiet \
+        -R \
+        -b boot/grub/stage2_eltorito \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -o "${TGTISO}" "${TMPDIR}"
+
+################################################################################
+# Clean up TMPDIR
+################################################################################
+echo "Cleaning Up"
+if [ -d "${TMPDIR}" ] ;then rm -fr "${TMPDIR}"; fi
