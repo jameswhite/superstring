@@ -2,15 +2,27 @@
 #
 # <type> <mountpoint> <size>   <fs type> <mount options> <misc options>
 
-disk_config sda bootable:1
-primary  /boot         250	  ext3   rw
-primary  -             1024-      -      -
- 
+#disk_config sda bootable:1
+#primary  /boot         250	  ext3   rw
+#primary  -             1024-      -      -
+# 
+#disk_config lvm
+#vg vg0                 sda2
+#vg0-swap               swap          2048   swap   sw                   
+#vg0-root               /             768    ext3   rw,errors=remount-ro
+#vg0-home               /home         256    ext3   rw                  
+#vg0-tmp                /tmp          1024   ext3   rw                  
+#vg0-usr                /usr          4096   ext3   rw                   
+#vg0-var                /var          1024   ext3   rw                   
+#
+#
+# Simple LVM example
+disk_config sda  bootable:1
+primary /boot 500 ext3 rw
+primary -       4096-   -       -
+
 disk_config lvm
-vg vg0                 sda2
-vg0-swap               swap          2048   swap   sw                   
-vg0-root               /             768    ext3   rw,errors=remount-ro
-vg0-home               /home         256    ext3   rw                  
-vg0-tmp                /tmp          1024   ext3   rw                  
-vg0-usr                /usr          4096   ext3   rw                   
-vg0-var                /var          1024   ext3   rw                   
+vg my_pv        sda2
+my_pv-_swap     swap    2048    swap    sw
+my_pv-_root     /       2048    ext3 rw
+
