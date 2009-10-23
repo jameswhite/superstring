@@ -1,6 +1,6 @@
 #!/bin/bash
 TGTISO="$1"
-# TGTISO="/opt/store/fai-cd-3.2.16.iso"
+# TGTISO="/opt/store/fai-cd-3.2.20.iso"
 SRCDIR="/opt/store/linux/debian/lenny"
 MNTDIR="/mnt/loop"
 ################################################################################
