@@ -4,10 +4,10 @@
 
 disk_config sda bootable:1
 primary  /boot         250	  ext3   rw
-primary  -:encrypt    1024-      -      -
+primary  -            1024-      -      -
  
 disk_config lvm
-vg vg0                 sda2
+vg vg0                 -:encrypt    sda2
 vg0-swap               swap          2048   swap   sw                   
 vg0-root               /             768    ext3   rw,errors=remount-ro
 vg0-home               /home         256    ext3   rw                  
