@@ -1,21 +1,19 @@
 #!/bin/bash
-TGTISO="$1"
-# TGTISO="/opt/store/fai-cd-3.2.20.iso"
-SRCDIR="/opt/store/linux/debian/lenny"
+SRCISO="$1"
+TGTISO="$2"
+
 MNTDIR="/mnt/loop"
+if [ -z "${SRCISO}" -o -z "${TGTISO}" ];then
+    echo "Usage: $0 <source.iso> <target.iso>"
+    exit 1;
+fi
 ################################################################################
 # gather the pieces
 ################################################################################
 echo "Gathering sources"
-if [ ! -f "${SRCDIR}/fai-cd-3.2.16.iso" ];then
-    wget -O "${SRCDIR}/fai-cd-3.2.16.iso" \
-        http://www.informatik.uni-koeln.de/fai/fai-cd/fai-cd-3.2.16.iso
-fi
-MD5=$(md5sum "${SRCDIR}/fai-cd-3.2.16.iso"|awk '{print $1}')
-if [ "${MD5}" != "e8ceefa8bf42243ad877776b6115690b" ]; then 
-    echo "md5sum mismatch"
-    echo "${MD5} e8ceefa8bf42243ad877776b6115690b"
-    exit;
+if [ ! -f "${SRCISO}" ];then
+    echo "${SRCISO} File not found"
+    exit 1;
 fi
 if [ ! -d /var/cache/git/superstring ]; then
     if [ ! -d /var/cache/git ]; then
@@ -29,7 +27,7 @@ else
     fi
 fi
 
-if [ ! -f "${SRCDIR}/fai-cd-3.2.16.iso" ]; then
+if [ ! -f "${SRCISO} ]; then
     echo "Could not fetch the iso image source"
     exit
 fi
@@ -60,7 +58,7 @@ umount ${MNTDIR}
 echo "Creating ISO"
 if [ -f "${TGTISO}" ];then rm "${TGTISO}";fi
 mkisofs -V "Fully Automatic Installation CD" \
-        -A "Fully Automatic Installation by Thomas Lange 3.2.16-superstring -- build $(date '+%c')" \
+        -A "Fully Automatic Installation by Thomas Lange 3.2.20-custom -- build $(date '+%c')" \
         -log-file /dev/null -quiet \
         -R \
         -b boot/grub/stage2_eltorito \
