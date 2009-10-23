@@ -42,7 +42,7 @@ fi
 ################################################################################
 echo "Unpacking sources"
 if [ ! -d "${MNTDIR}" ];then mkdir -p "${MNTDIR}"; fi
-sudo mount -o loop ${SRCDIR}/fai-cd-3.2.16.iso ${MNTDIR}
+sudo mount -o loop ${SRCISO} ${MNTDIR}
 TMPDIR=$(mktemp -d /var/tmp/fai_cd.XXXX)
 rsync -aqzPH ${MNTDIR}/ ${TMPDIR}/
 echo "Merging sources"
