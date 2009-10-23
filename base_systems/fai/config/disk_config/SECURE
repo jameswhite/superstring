@@ -2,11 +2,16 @@
 #
 # <type> <mountpoint> <size>   <fs type> <mount options> <misc options>
 
-disk_config disk1 disklabel:msdos
+disk_config sda bootable:1
+primary  /boot         250	  ext3   rw,errors=remount-ro
+primary  -:encrypt     10240-
 
-primary  /             250	  ext3   rw,errors=remount-ro
-logical  swap          200-1000   swap   rw                   
-logical  /var          600-1300   ext3   rw         createopts="-m 5" tuneopts="-c 0 -i 0"
-logical  /tmp          100-1G     ext3   rw         createopts="-m 0" tuneopts="-c 0 -i 0"
-logical  /usr          1G-8G      ext3   rw
-logical  /home         100-50%    ext3   rw,nosuid  createopts="-m 1" tuneopts="-c 0 -i 0"
+disk_config lvm
+vg vg0                 sda2
+vg0-swap               swap          2048   swap   sw                   
+vg0-root               /             768    ext3   rw,errors=remount-ro createopts="-m 5" tuneopts="-c 0 -i 0"
+vg0-home               /home         256    ext3   rw                   createopts="-m 0" tuneopts="-c 0 -i 0"
+vg0-tmp                /tmp          1024   ext3   rw                   createopts="-m 5" tuneopts="-c 0 -i 0"
+vg0-usr                /usr          4096   ext3   rw                   createopts="-m 0" tuneopts="-c 0 -i 0"
+vg0-var                /var          1024   ext3   rw                   createopts="-m 5" tuneopts="-c 0 -i 0"
+vg0-opt                /opt          1024-  ext3   rw                   createopts="-m 0" tuneopts="-c 0 -i 0"
