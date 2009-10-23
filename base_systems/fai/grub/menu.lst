@@ -5,9 +5,9 @@ timeout 10
 
 color light-gray/black light-gray/red
 # each title is +1 so 6==0 here.
-default 6
+default 7
 
-title |
+title |                                                      |
 root (cd)
 title +------------------------------------------------------+
 root (cd)
@@ -17,16 +17,17 @@ title |  FAI 3.2.16 -- build Mon 16 Feb 2009 04:21:19 PM CET |
 root (cd)
 title +------------------------------------------------------+
 root (cd)
-title |
+title |                                                      |
 root (cd)
-title |
+title |                                                      |
 
 title boot from local disk
 rootnoverify (hd0)
 chainloader +1
 
-title Fully Automatic Installation with dm-crypt filesystem (pw: installme)
-password installme
+title Fully Automatic Installation with dm-crypt filesystem 
+#(pw: installme)
+# password installme
 kernel /boot/vmlinuz boot=live FAI_FLAGS="verbose,createvt" FAI_ACTION=install ip=dhcp:::::eth0:off hostname=secure
 initrd /boot/initrd.img
 
