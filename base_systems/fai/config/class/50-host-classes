@@ -10,6 +10,8 @@ case $HOSTNAME in
 	echo "FAIBASE DHCPC DEMO" ;;
     gnomehost)
 	echo "FAIBASE DHCPC DEMO XORG GNOME";;
+    secure)
+	echo "SECURE DHCPC DEMO XORG GNOME";;
     atom*)
 	echo "FAIBASE DHCPC DEMO" ;;
     *)
