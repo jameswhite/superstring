@@ -1,0 +1,117 @@
+################################################################################
+# Procedure for crating an up-to-date fai-cd
+# Why? there were some signifigant partitioner improvements that allow for
+# things line lvm-on-crypto-on-software-raid, you know in case you want it...
+################################################################################
+
+Download http://www.informatik.uni-koeln.de/fai/fai-cd/fai-cd-3.2.16.iso
+Install a VM from it, then On the VM:
+
+################################################################################
+# GPG Keys 
+################################################################################
+for KEY in `echo ADC353108B3F1AA2`; do
+    gpg --keyserver hkp://subkeys.pgp.net --recv $KEY 
+    gpg --export --armor $KEY | apt-key add - 
+done
+
+gpg --keyserver hkp://subkeys.pgp.net --recv-keys 16BA136C ; 
+gpg --export 16BA136C | apt-key add -
+
+gpg -a --recv-keys AB9B66FD; gpg -a --export AB9B66FD | apt-key add -
+
+cat<<EOF| apt-key add - 
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+mQGiBEno7nIRBAC6mSO5HmAC/02XTlYOaRG1E3U6FB+5HFVxN4K+m59pDKJHtVvW
+9ldXTikn0csbEpDk1NDq0j1+dEMwlxABmu4TGmsmvlBalI+YRrZDvC6JYTU+CcCa
+o99nmzLAkNgInWh1/iM3L3/Q0oVuwkYNLco0/eysDHlO8TCidG2fWAwq5wCgniLZ
+lN8/8++vTt/n5Zz/THAkSY8D/jXL7SIvmu/Lh6P3N4jPwnXEJ2JSTvYz3Qa0aCqj
+0jJAMtQ96SGz2bGc5MMGqnE+nMefDxe2TIkgnTnvjnqFv6Cwk4fuOo/mLnxMx2Zc
+1hqlegIXVoQn6jq9sHiSgw3hmsVFUvigImVcSZ9JdcWAChVXmBWkS7wovK3BBSbq
+RUjhA/44T1gqgbx1PCULgudTXErNKEF32pxFU2/cLuOweUmZr2EbAAJuAnLzOTKW
+hEs203hv+z7VkAimmHW/OfXE/EDqkh5zsKsgLbGe/1ARonzchPvaZxBoZ8KZ/ta7
+NCFaWiF8sTk3hNJcaVqkJqqbk94lPnUGhWY8/0g4UvlGEA5OcLQ8V2ViIFNhZ2Vz
+IEF1dG9tYXRpYyBTaWduaW5nIEtleSA8cGFja2FnZW1hc3RlckB3ZWJzYWdlcy5j
+b20+iGYEExECACYFAkno7nICGwMFCQWjmoAGCwkIBwMCBBUCCAMEFgIDAQIeAQIX
+gAAKCRCtw1MQiz8aov6+AJ0UbMOPdqxN6fFt9jKqGPhtw/oS/QCeKRiO5GDsJpn5
+1qWLyiwbxzhWoy8=
+=22ag
+-----END PGP PUBLIC KEY BLOCK-----
+EOF
+
+################################################################################
+# configure apt, install build-essential
+################################################################################
+cat<<EOF > /etc/apt/sources.list
+deb http://www.informatik.uni-koeln.de/fai/download lenny koeln
+deb http://www.backports.org/debian/ lenny-backports main
+deb http://ftp.us.debian.org/debian/ stable main non-free
+deb http://security.debian.org/ stable/updates main non-free
+deb http://apt.websages.com/ lenny-wcyd main
+EOF
+
+apt-get update && apt-get upgrade
+apt-get install -y build-essential 
+
+################################################################################
+# Install VMwareTool (on a vmware virtual-machine only)
+################################################################################
+# Install vmware tools from vmware
+mount /media/cdrom
+[ ! -d /home/root ] && mkdir -p /home/root
+( cd /home/root; tar xvzf /media/cdrom/*.tar.gz )
+umount /media/cdrom
+( cd /home/root/vmware-tools-distrib; ./vmware-install.pl default )
+
+################################################################################
+# FAI-CD (this procedure can take hours as you pull the packages down...)
+################################################################################
+apt-get install -y apt-move fai-server fai-client mkisofs
+
+# make sure to use our sources.list for fai-setup or you won't get fai-3.2.20
+cp /etc/apt/sources.list /etc/fai/apt/sources.list
+
+# there isn't enough space in the gnome /srv, so we hack it.
+    [ -d /srv ] && /bin/rmdir /srv 
+    [! -d /usr/local/srv ] && mkdir -p /usr/local/srv
+    [! -h /srv ] && ln -s /usr/local/srv /srv
+    fai-setup
+
+# make sure this doesn't return 3.2.17-lenny1
+dpkg --root=/srv/fai/nfsroot/live/filesystem.dir/ -l fai-client|awk '/fai-client/ {print $3}'
+
+
+# fai-mirror expect the fai-configs to be populated, 
+# so mount the iso /mnt/loop and rsync the default ones there...
+# rsync -avzPH /mnt/loop/live/filesystem.dir/var/lib/fai/config/ root@virtual-machine:/srv/fai/config/
+#
+# or if you copied it locally...
+# rsync -avzPH /var/lib/fai/config/ /srv/fai/config/
+
+fai-mirror /srv/fai-mirror
+fai-cd  -m /srv/fai-mirror /srv/fai-cd-3.2.20.iso
+
+# Create another VM, and install it from the fai-cd-3.2.20.iso
+
+################################################################################
+# If your VM installs, you now have a 3.2.20 CD that we can iterate customizing
+# that is several orders of magnitude faster than the process above...
+# It can be iterated in seconds instead of the hours the inital cd creation took
+#
+# Superstrings customizations...
+################################################################################
+
+[ ! -d /var/cache/git ] && mkdir -p /var/cache/git
+( cd /var/cache/git ; git://github.com/fapestniegd/superstring.git )
+
+################################################################################
+# There is a script in there "superstring/base_systems/fai/bin/fai-ss-cd"
+# that will un-pack the fai-cd, rsync the superstring/base_systems/fai/config/* 
+# files with it and re-pack everything into a new ISO in about a minute
+# this allows you to git commit, create new iso, build host, repeat...
+################################################################################
+
+# Cryptoloop example:
+# http://www.mail-archive.com/linux-fai@uni-koeln.de/msg01732.html
