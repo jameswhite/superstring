@@ -12,7 +12,7 @@ fi
 ################################################################################
 echo "Gathering sources"
 if [ ! -f "${SRCISO}" ];then
-    echo "${SRCISO} File not found"
+    echo "${SRCISO} File not found";
     exit 1;
 fi
 if [ ! -d /var/cache/git/superstring ]; then
@@ -27,7 +27,7 @@ else
     fi
 fi
 
-if [ ! -f "${SRCISO} ]; then
+if [ ! -f "${SRCISO}" ]; then
     echo "Could not fetch the iso image source"
     exit
 fi
