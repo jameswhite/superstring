@@ -1,5 +1,6 @@
 PACKAGES aptitude
 fai-client
+cryptsetup
 cfengine2
 cron
 debconf-utils
