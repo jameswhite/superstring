@@ -4,7 +4,7 @@
 
 disk_config sda bootable:1
 primary  /boot         250	  ext3   rw
-primary  -:encrypt    9472-       -      -
+primary  -            9472-       -      -
  
 disk_config lvm
 vg vg0                 sda2
