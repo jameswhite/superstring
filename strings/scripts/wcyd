@@ -118,7 +118,7 @@ puppet_init(){
                > /var/log/puppet/firstrun.log 2>&1
     else
         puppet --debug --modulepath=/var/cache/git/websages/etc/puppet/modules/ \
-               /var/cache/git/websages/etc/puppet/hosts/default_base.pp \
+               /var/cache/git/websages/etc/puppet/hosts/default.pp \
                > /var/log/puppet/firstrun.log 2>&1
     fi
 }
