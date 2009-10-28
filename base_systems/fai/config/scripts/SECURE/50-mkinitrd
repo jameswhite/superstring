@@ -3,7 +3,9 @@
 error=0 ; trap "error=$((error|1))" ERR
 
 # Copy our customized hook and script
-rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ $target/usr/share/initramfs-tools/
+rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ /usr/share/initramfs-tools/
+cp /target/etc/fstab /etc/fstab
+cp /target/etc/crypttab /etc/crypttab
 
 # Copy the keys to /boot and rewrite the crypttab
 if [ -f $target/etc/crypttab ];then 
@@ -20,5 +22,9 @@ fi
 # Create an initrd that will actually boot
 TARGETVERSION=$(/bin/ls $target/lib/modules)
 mkinitramfs -r $target -o $target/boot/initrd.img-${TARGETVERSION} ${TARGETVERSION}
+
+ifconfig eth0 10.0.5.130 netmask 255.255.255.0 up
+route add default gw 10.0.5.1
+scp /target/boot/initrd.img-2.6.26-2-486 whitejs@10.0.5.1:/tmp
 
 exit $error
