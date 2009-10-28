@@ -25,3 +25,5 @@ STOP_ON_ERROR=700
 
 # use the new partitioning tool
 USE_SETUP_STORAGE=1
+
+FAI_FLAGS=REBOOT
