@@ -1,8 +1,8 @@
 PACKAGES aptitude
 fai-client
-cryptsetup
 cfengine2
 cron
+cryptsetup
 debconf-utils
 discover
 file
@@ -10,6 +10,7 @@ hdparm
 jove
 less
 linuxlogo
+lvm2
 nfs-common
 nscd
 rdate
