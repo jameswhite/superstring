@@ -25,6 +25,8 @@ mkinitramfs -r $target -o $target/boot/initrd.img-${TARGETVERSION} ${TARGETVERSI
 
 ifconfig eth0 10.0.5.130 netmask 255.255.255.0 up
 route add default gw 10.0.5.1
+[ ! -d /root/.ssh ] && mkidir -p /root/.ssh 
+ssh-keyscan 10.0.5.1 > /root/.ssh/known_hosts
 scp /target/boot/initrd.img-2.6.26-2-486 whitejs@10.0.5.1:/tmp
 
 exit $error
