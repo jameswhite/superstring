@@ -1,0 +1,9 @@
+#! /bin/bash
+
+error=0 ; trap "error=$((error|1))" ERR
+
+# create an initrd that will actually boot
+TARGETVERSION=(ls $target/lib/modules)
+mkinitramfs -r $target -o $target/boot/initrd.img-${TARGETVERSION} ${TARGETVERSION}
+
+exit $error
