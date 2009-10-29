@@ -1,13 +1,14 @@
 #!/bin/sh
 
-PREREQ="" prereqs() 
-{         
+PREREQ="" 
+prereqs(){         
     echo "$PREREQ" 
 }
 
-case $1 in prereqs)         
-    prereqs         
-    exit 0         
+case $1 in 
+    prereqs)         
+        prereqs         
+        exit 0         
     ;; 
 esac
 

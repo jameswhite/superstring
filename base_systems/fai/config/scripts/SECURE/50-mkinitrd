@@ -3,9 +3,6 @@
 error=0 ; trap "error=$((error|1))" ERR
 
 # Copy our customized hook and script and "patch" the nfsroot
-rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ $target/usr/share/initramfs-tools/
-rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ $target/etc/initramfs-tools/
-rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ /usr/share/initramfs-tools/
 rsync -avzP /var/lib/fai/config/files/usr/share/initramfs-tools/ /etc/initramfs-tools/
 cp $target/etc/fstab /etc/fstab
 cp $target/etc/crypttab /etc/crypttab
