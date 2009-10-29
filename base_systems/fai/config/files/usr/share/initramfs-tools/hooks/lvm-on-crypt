@@ -1,0 +1,5 @@
+#!/bin/sh
+mkdir -p ${DESTDIR}/boot
+cp -p /target/boot/crypttab ${DESTDIR}/boot
+cp -p /target/boot/crypt_dev_sda2 ${DESTDIR}/boot
+exit 0

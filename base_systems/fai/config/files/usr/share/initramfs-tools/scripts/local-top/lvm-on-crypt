@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "Kludging root"
+cryptsetup --key-file /boot/crypt_dev_sda2 luksOpen /dev/sda2 crypt_dev_sda2
+lvm vgchange -a y vg0
+exit 0
