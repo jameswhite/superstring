@@ -1,5 +1,22 @@
 #!/bin/sh
-echo "Kludging root"
+# Example boot script
+
+PREREQ="" prereqs() 
+{         
+    echo "$PREREQ" 
+}
+
+case $1 in prereqs)
+    prereqs
+    exit 0
+    ;; 
+esac
+
+# Begin real processing below this line 
+
+log_begin_msg "Starting lvm-on-crypt"
+
 cryptsetup --key-file /boot/crypt_dev_sda2 luksOpen /dev/sda2 crypt_dev_sda2
 lvm vgchange -a y vg0
+
 exit 0
