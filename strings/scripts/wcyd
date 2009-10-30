@@ -191,12 +191,11 @@ EOF
 
     # insert the SSHA password
     SALT=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum| perl -MMIME::Base64 -ne 'print encode_base64($_)'|cut -b 1-4)
-    perl -MDigest::SHA1 -MMIME::Base64 -le '$ctx = Digest::SHA1->new;
-                                            $ctx->add($ARGV[0]);
-                                            $ctx->add($ARGV[1]); 
-                                            $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,"");
-                                            print "userPassword: " .  $hashedPasswd . "\n";' $(SECRET} ${SALT}
-
+    #perl -MDigest::SHA1 -MMIME::Base64 -le '$ctx = Digest::SHA1->new;
+    #                                        $ctx->add($ARGV[0]);
+    #                                        $ctx->add($ARGV[1]); 
+    #                                        $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,"");
+    #                                        print "userPassword: " .  $hashedPasswd . "\n";' $(SECRET} ${SALT}
     cat ${LDIF}
     rm ${LDIF}
 }
