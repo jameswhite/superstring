@@ -5,7 +5,7 @@ PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 ########################################################################
 # It's so configuring a host will consist of just running:
 # 
-# wget -qO /tmp/wcyd $(dig +short -ttxt wcyd.$(dnsdomainname)) ; 
+# wget -qO /tmp/wcyd "$(dig +short -ttxt wcyd.$(dnsdomainname))" 
 # chmod 755 /tmp/wcyd; /tmp/wcyd $(hostname -f) ${LDAP_HOST_PASSWORD}
 #
 ################################################################################
@@ -120,7 +120,6 @@ EOSEC
     chown root:root /usr/local/sbin/secret
     chmod 700 /usr/local/sbin/secret
     umask ${UMASK}
-    fi
 }
 
 ldap-bind(){
