@@ -26,7 +26,7 @@ fix_etc_hosts(){
     if [ -f /etc/.new_etc_hosts ];then rm /etc/.new_etc_hosts;fi
     HNAME=$(hostname -s)
     FQDN=$(hostname -f)
-    LOCAL=$(grep "127.0.0.1" /etc/hosts)
+    LOCAL=$(grep "127.0.0.1" /etc/hosts| head -1)
     if [ ! -z "${LOCAL}" ];then 
         echo "${LOCAL}"|grep -q "127.0.0.1 *localhost.localdomain *localhost" || \
           LOCAL=$(echo ${LOCAL}|sed -e 's/127.0.0.1.*/127.0.0.1 localhost.localdomain localhost/')
@@ -257,6 +257,8 @@ hostname "${DESIRED_FQDN}"
 ####################################
 HNAME=$(hostname -s)
 FQDN=$(hostname -f)
+
+# Assume the primary interface has the default route on it.
 IFACE=$(route -n|awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|head -1)
 IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
 [ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
