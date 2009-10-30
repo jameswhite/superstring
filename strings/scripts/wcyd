@@ -292,4 +292,4 @@ else
     ldapadd-selfrecord
 fi
 
-ldapadd-selfrecord
+ldapadd-selfrecord > /root/$(hostname -s).ldif
