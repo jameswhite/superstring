@@ -1,5 +1,6 @@
 #/bin/bash
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+LOG="/var/log/wcyd.log"
 ########################################################################
 # This is the bare-minimum a host needs to get initialized into the farm
 ########################################################################
@@ -281,10 +282,10 @@ fi
 case "${DISTRO}" in
     debian)
         echo "I appear to be running debian."
-        apt-get update && apt-get dist-upgrade -y
-        [ -z $(which dig) ] && apt-get install -y dns-browse
-        [ -z $(which git) ] && apt-get install -y git-core
-        [ -z $(which puppet) ] && apt-get install -y puppet
+        apt-get update && apt-get dist-upgrade -y >> ${LOG} 2>&1
+        [ -z $(which dig) ] && apt-get install -y dns-browse >> ${LOG} 2>&1
+        [ -z $(which git) ] && apt-get install -y git-core >> ${LOG} 2>&1
+        [ -z $(which puppet) ] && apt-get install -y puppet >> ${LOG} 2>&1
         fix_etc_hosts
         fix_etc_hostname
         fix_etc_mailname
@@ -295,8 +296,8 @@ case "${DISTRO}" in
         yum clean all -y 
         yum update -y
         yum upgrade -y
-        [ -z $(which dig) ] && yum install -y bind-utils
-        [ -z $(which puppet) ] && yum install -y puppet
+        [ -z $(which dig) ] && yum install -y bind-utils >> ${LOG} 2>&1
+        [ -z $(which puppet) ] && yum install -y puppet >> ${LOG} 2>&1
         fix_etc_hosts
         #fix_etc_sysconfig_network
     ;;
