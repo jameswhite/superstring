@@ -245,7 +245,8 @@ EOF
 # Some usage validation
 ####################################
 [ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
-if [ $# -le 1 ]; then
+echo $#
+if [ $# -lt 1 ]; then
     echo "not enough arguments"
     usage
 fi
