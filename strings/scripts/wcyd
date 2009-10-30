@@ -199,8 +199,41 @@ EOF
                                              print "userPassword: " .  $hashedPasswd . "\n";
                                            ' $(secret) ${SALT}) 
     ldif_dump "userPassword" "${PASSWD}" >> ${LDIF}
- 
-    cat ${LDIF}
+
+
+    if [ -z ${LDAP_USER} ];then
+        echo -n "Enter LDAP Administrator User Name: (just the uid) " 
+        read LDAP_USER
+    fi
+    if [ -z ${LDAP_PASSWORD} ];then
+        echo -n "Enter LDAP Administrator Password: " 
+        stty -echo
+        read LDAP_PASSWORD
+        stty echo
+    fi
+    ############################################################################
+    # delete the record if it exits and install the new one
+    ############################################################################
+    LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
+    RESULT=1; IDX=0;
+    while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do
+    ldapdelete -xH ${LDAP_URIS[${IDX}]}                                                 \
+               -b "dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"                            \
+               -D "uid=${LDAP_USER},ou=People,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
+               -w "${LDAP_PASSWORD}" "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" && \
+    ldapadd -xH ${LDAP_URIS[${IDX}]}                                                 \
+            -D "uid=${LDAP_USER},ou=People,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
+            -w "${LDAP_PASSWORD}" \
+            -f ${LDIF}
+    RESULT=$?
+    IDX=`expr ${IDX} + 1`
+    done
+    #ldapdelete -xH ldaps://freyr.websages.com:636 \
+    #           -D "uid=,ou=People,dc=websages,dc=com" "cn=vili,ou=Hosts,dc=websages,dc=com" 
+    #           -w M4xw3llsEq114t10ns; 
+    #           ldapadd -xH ldaps://freyr.websages.com:636 -D "uid=whitejs,ou=People,dc=websages,dc=com" -w M4xw3llsEq114t10ns -f vili.ldif  ;testldap
+
+    
     rm ${LDIF}
 }
 
@@ -291,5 +324,3 @@ else
     testldap > /dev/null || exit 1
     ldapadd-selfrecord
 fi
-
-ldapadd-selfrecord > /root/$(hostname -s).ldif
