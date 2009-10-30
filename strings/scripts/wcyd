@@ -27,7 +27,7 @@ fix_etc_hosts(){
     FQDN=$(hostname -f)
     LOCAL=$(grep "127.0.0.1" /etc/hosts)
     if [ ! -z "${LOCAL}" ];then 
-        echo "${LOCAL}"|grep -q "127.0.0.1 *localhost.localdomain *localhost"||\
+        echo "${LOCAL}"|grep -q "127.0.0.1 *localhost.localdomain *localhost" || \
           LOCAL=$(echo ${LOCAL}|sed -e 's/127.0.0.1.*/127.0.0.1 localhost.localdomain localhost/')
     else
         LOCAL="127.0.0.1 localhost.localdomain localhost" 
@@ -227,6 +227,8 @@ EOF
     RESULT=$?
     IDX=`expr ${IDX} + 1`
     done
+    cp ${LDIF} /root/$(hostname -s).ldif
+    chmod 600 /root/$(hostname -s).ldif
     rm ${LDIF}
 }
 
