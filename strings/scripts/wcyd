@@ -1,32 +1,23 @@
 #/bin/bash
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 ########################################################################
 # This is the bare-minimum a host needs to get initialized into the farm
 ########################################################################
-[ ${UID} -eq 0 ]||(echo run as root; exit -1)
-[ $# -eq 1 ]||(echo "Usage $0 <fully.qualified.domain.nam>"; exit -1)
-PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
-DESIRED_FQDN=$1; 
-echo "${DESIRED_FQDN}"|grep  "\."
-if [ $? -ne 0 ]; then 
+# It's so configuring a host will consist of just running:
+# 
+# wget -qO /tmp/wcyd $(dig +short -ttxt wcyd.$(dnsdomainname)) ; 
+# chmod 755 /tmp/wcyd; /tmp/wcyd $(hostname -f) ${LDAP_HOST_PASSWORD}
+#
+################################################################################
+# functions
+################################################################################
+usage(){
     echo "Usage $0 <fully.qualified.domain.nam> [<ldap_secret>]"
-    exit -1
-fi
-hostname "${DESIRED_FQDN}"
-####################################
-# Try to determine the distribution
-####################################
-if [ -f /etc/debian_version ];then
-    DISTRO="debian"
-else 
-    if [ -f /etc/redhat_release ];then 
-        DISTRO="redhat"
-    else
-        DISTRO="unknown"
-    fi
-fi
+    exit 1;
+}
 
 ####################################
-# Common fixups
+# Common fixups 
 ####################################
 
 fix_etc_hosts(){
@@ -91,17 +82,6 @@ fix_etc_mailname(){
 
 
 ####################################
-# Get minimal facts about system
-####################################
-HNAME=$(hostname -s)
-FQDN=$(hostname -f)
-IFACE=$(route -n|awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|head -1)
-IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
-[ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
-[ -z ${IPADDR} ]&& ( echo "I cannot determine my IP address"; exit -1)
-echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
-
-####################################
 # git our sources
 ####################################
 puppet_init(){
@@ -123,6 +103,127 @@ puppet_init(){
     fi
 }
 
+secret-init(){
+    SECRET=$1;
+    UMASK=$(umask)
+    umask 0077
+    if [ -z $SECRET ];then
+        SECRET=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum|\
+                     perl -MMIME::Base64 -ne 'print encode_base64($_)')
+    fi
+/bin/cat<<EOSEC>/usr/local/sbin/secret
+#!/bin/bash
+echo -n "${SECRET}"
+EOSEC
+
+    # just in case umask went awry...
+    chown root:root /usr/local/sbin/secret
+    chmod 700 /usr/local/sbin/secret
+    umask ${UMASK}
+    fi
+}
+
+ldap-bind(){
+    LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
+    RESULT=1; IDX=0;
+    while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do 
+    ldapsearch -xH ${LDAP_URIS[${IDX}]}                                                               \
+               -b "dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"                            \
+               -D "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
+               -w "$(/usr/local/sbin/secret)"                                           \ 
+               "(cn=$(hostname -s))"
+    RESULT=$?
+    IDX=`expr ${IDX} + 1`
+    done
+    return ${RESULT}
+}
+
+ldapadd-selfrecord(){
+    LDIF=$(mktemp /tmp/ldif.XXXX)
+cat<<EOF>${LDIF}
+dn: cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
+configBase: #debian_lenny
+objectClass: configHost
+objectClass: device
+objectClass: ipHost
+objectClass: top
+objectClass: simpleSecurityObject
+objectClass: ldapPublicKey
+cn: $(hostname -f)
+configSet: ldap_client
+EOF
+
+# insert all the IP addresses
+for IP in `ifconfig | grep "inet addr:"|sed -e 's/.*inet addr://g' -e 's/ .*//g'|grep -v 127.0.0.1`;do
+echo "ipHostNumber: ${IP}" >> ${LDIF}
+done
+
+sshPublicKey:: c3NoLWRzcyBBQUFBQjNOemFDMWtjM01BQUFDQkFMbHZBVEJKM0cyYkZzTUlmbFl
+ sNzZEVjE2QnNwaEJwaEZnMWpJbFBxVUs0aFVtNnZCZUQzRklCNG44Qml0b1ZiTUpBRG92M1BuWnVy
+ YjFTdHViRVIwamxqWXhhcXZHbWJsQys0YUo0WnZYOWpraXNkejkwNFEyL05EZ3k5NEVlZlRldEtmT
+ DhFdXovUDQrMG5JNzJQcVZmRDhjbWxUcXAwOVk4WDZTcjR1SnRBQUFBRlFEUGFPdVZuTXdjdVlneU
+ NBR2RjSUs4MXRtRVR3QUFBSUF1TjF3R21GZC85VjBVM1EvT1A5V21XZmNDemVIR29jdUhRNzk5b2J
+ KZTBiSCtlSXcvcklRalJydkFpMmp2cFNTRUJ1aHpKU0FrRE0xMTdkREZJZUZNYUtHY0hyMWpJZU9a
+ K1NObFI5MU5MWFBvYUszUlVrdGprTmkyT09MSjh6NW5tVTR2aVdEZUNvaDhDS1ZuL0lSSTFOQVBWU
+ k0yTEl1amRlbmN6YVE3WlFBQUFJQXROVHNCTGNGQlFxL2tMa0IzanNENEZaU29sMUhpc2VBQWh5Sn
+ Y4K1VueTZkWEozM2Z6bzhINWYwSlh2R2RMY0NvOWhhTUs0RmpGcjkxQ2JwcXFpYitxUFQyS3Y3L25
+ kaG9NclYxZ05kZEtOSEJocVdFekF6NWJxR1E0ak85WGZyeE1Xc2c0SGJ0amlQVW92V01ma0g5UHVz
+ WlNKV3Q4WFlJY3Zydnp3aXdBQT09IHJvb3RAdmlsaS53ZWJzYWdlcy5jb20K
+userPassword:: e1NTSEF9SEdZNkw2VWNDRzN1TzQySlo4eENMNTdiNHJoS1N6TXNwWWVCRXc9PQ=
+EOF
+
+}
+
+################################################################################
+# MAIN
+################################################################################
+
+####################################
+# Some usage validation
+####################################
+[ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
+[ $# -eq 1 ]||usage
+DESIRED_FQDN=$1; 
+SUPPLIED_SECRET=$2; 
+echo "${DESIRED_FQDN}"|grep  "\."
+if [ $? -ne 0 ]; then usage; fi
+hostname "${DESIRED_FQDN}"
+
+####################################
+# Get minimal facts about system
+####################################
+HNAME=$(hostname -s)
+FQDN=$(hostname -f)
+IFACE=$(route -n|awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|head -1)
+IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
+[ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
+[ -z ${IPADDR} ]&& ( echo "I cannot determine my IP address"; exit -1)
+echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
+
+####################################
+# confirm and store the secret
+####################################
+
+if [ ! -z ${SUPPLIED_SECRET} ];then
+    secret-init ${SUPPLIED_SECRET}
+    ldap-bind || ldapadd-selfrecord
+else
+    secret-init
+    ldapadd-selfrecord
+fi
+
+####################################
+# Try to determine the distribution
+####################################
+if [ -f /etc/debian_version ];then
+    DISTRO="debian"
+else 
+    if [ -f /etc/redhat_release ];then 
+        DISTRO="redhat"
+    else
+        DISTRO="unknown"
+    fi
+fi
 
 ####################################
 # Set up configuration management
