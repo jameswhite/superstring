@@ -228,12 +228,6 @@ EOF
     RESULT=$?
     IDX=`expr ${IDX} + 1`
     done
-    #ldapdelete -xH ldaps://freyr.websages.com:636 \
-    #           -D "uid=,ou=People,dc=websages,dc=com" "cn=vili,ou=Hosts,dc=websages,dc=com" 
-    #           -w M4xw3llsEq114t10ns; 
-    #           ldapadd -xH ldaps://freyr.websages.com:636 -D "uid=whitejs,ou=People,dc=websages,dc=com" -w M4xw3llsEq114t10ns -f vili.ldif  ;testldap
-
-    
     rm ${LDIF}
 }
 
