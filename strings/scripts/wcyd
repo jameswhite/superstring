@@ -148,11 +148,27 @@ ldap-bind(){
     return ${RESULT}
 }
 
+ldif_dump(){
+NAME=$1
+VALUE=$2
+    MIMELINE=$(perl -MMIME::Base64 -le 'print "$ARGV[0]::".encode_base64($ARGV[1]);' "${NAME}" "${VALUE}"|tr '\n' ' '|sed -e 's/ //g' -e 's/::/:: /';)
+    LENGTH=$(echo -n "${MIMELINE}" | wc -c)
+    CHUNK=$(echo "${MIMELINE}"|cut -b 1-78)
+    echo ${CHUNK}
+    MIMELINE=$(echo ${MIMELINE}|sed -e "s/^${CHUNK}//")
+    while [ ${LENGTH} -gt 0 ];do
+        CHUNK=$(echo "${MIMELINE}"|cut -b 1-77)
+        echo " ${CHUNK}"
+        MIMELINE=$(echo "${MIMELINE}"|sed -e "s/^${CHUNK}//")
+        LENGTH=$(echo -n "${MIMELINE}" | wc -c)
+    done
+}
+
 ldapadd-selfrecord(){
     LDIF=$(mktemp /tmp/ldif.XXXX)
 cat<<EOF>${LDIF}
 dn: cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
-configBase: #debian_lenny
+configBase: debian_lenny
 objectClass: configHost
 objectClass: device
 objectClass: ipHost
@@ -167,21 +183,11 @@ EOF
 for IP in `ifconfig | grep "inet addr:"|sed -e 's/.*inet addr://g' -e 's/ .*//g'|grep -v 127.0.0.1`;do
 echo "ipHostNumber: ${IP}" >> ${LDIF}
 done
-
-#sshPublicKey:: c3NoLWRzcyBBQUFBQjNOemFDMWtjM01BQUFDQkFMbHZBVEJKM0cyYkZzTUlmbFl
-# sNzZEVjE2QnNwaEJwaEZnMWpJbFBxVUs0aFVtNnZCZUQzRklCNG44Qml0b1ZiTUpBRG92M1BuWnVy
-# YjFTdHViRVIwamxqWXhhcXZHbWJsQys0YUo0WnZYOWpraXNkejkwNFEyL05EZ3k5NEVlZlRldEtmT
-# DhFdXovUDQrMG5JNzJQcVZmRDhjbWxUcXAwOVk4WDZTcjR1SnRBQUFBRlFEUGFPdVZuTXdjdVlneU
-# NBR2RjSUs4MXRtRVR3QUFBSUF1TjF3R21GZC85VjBVM1EvT1A5V21XZmNDemVIR29jdUhRNzk5b2J
-# KZTBiSCtlSXcvcklRalJydkFpMmp2cFNTRUJ1aHpKU0FrRE0xMTdkREZJZUZNYUtHY0hyMWpJZU9a
-# K1NObFI5MU5MWFBvYUszUlVrdGprTmkyT09MSjh6NW5tVTR2aVdEZUNvaDhDS1ZuL0lSSTFOQVBWU
-# k0yTEl1amRlbmN6YVE3WlFBQUFJQXROVHNCTGNGQlFxL2tMa0IzanNENEZaU29sMUhpc2VBQWh5Sn
-# Y4K1VueTZkWEozM2Z6bzhINWYwSlh2R2RMY0NvOWhhTUs0RmpGcjkxQ2JwcXFpYitxUFQyS3Y3L25
-# kaG9NclYxZ05kZEtOSEJocVdFekF6NWJxR1E0ak85WGZyeE1Xc2c0SGJ0amlQVW92V01ma0g5UHVz
-# WlNKV3Q4WFlJY3Zydnp3aXdBQT09IHJvb3RAdmlsaS53ZWJzYWdlcy5jb20K
-#userPassword:: e1NTSEF9SEdZNkw2VWNDRzN1TzQySlo4eENMNTdiNHJoS1N6TXNwWWVCRXc9PQ=
-#EOF
-
+cat /root/.ssh/id_dsa.pub|while read LINE; do
+    ldif_dump "sshPublicKey" "${LINE}" >> ${LDIF}
+done
+cat ${LDIF}
+rm ${LDIF}
 }
 
 ################################################################################
@@ -271,3 +277,5 @@ else
     testldap > /dev/null || exit 1
     ldapadd-selfrecord
 fi
+
+ldapadd-selfrecord
