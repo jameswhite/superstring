@@ -181,7 +181,7 @@ EOF
 # Some usage validation
 ####################################
 [ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
-[ $# -eq 1 ]||usage
+[ $# -le 1 ]||usage
 DESIRED_FQDN=$1; 
 SUPPLIED_SECRET=$2; 
 echo "${DESIRED_FQDN}"|grep  "\."
