@@ -161,19 +161,19 @@ for IP in `ifconfig | grep "inet addr:"|sed -e 's/.*inet addr://g' -e 's/ .*//g'
 echo "ipHostNumber: ${IP}" >> ${LDIF}
 done
 
-sshPublicKey:: c3NoLWRzcyBBQUFBQjNOemFDMWtjM01BQUFDQkFMbHZBVEJKM0cyYkZzTUlmbFl
- sNzZEVjE2QnNwaEJwaEZnMWpJbFBxVUs0aFVtNnZCZUQzRklCNG44Qml0b1ZiTUpBRG92M1BuWnVy
- YjFTdHViRVIwamxqWXhhcXZHbWJsQys0YUo0WnZYOWpraXNkejkwNFEyL05EZ3k5NEVlZlRldEtmT
- DhFdXovUDQrMG5JNzJQcVZmRDhjbWxUcXAwOVk4WDZTcjR1SnRBQUFBRlFEUGFPdVZuTXdjdVlneU
- NBR2RjSUs4MXRtRVR3QUFBSUF1TjF3R21GZC85VjBVM1EvT1A5V21XZmNDemVIR29jdUhRNzk5b2J
- KZTBiSCtlSXcvcklRalJydkFpMmp2cFNTRUJ1aHpKU0FrRE0xMTdkREZJZUZNYUtHY0hyMWpJZU9a
- K1NObFI5MU5MWFBvYUszUlVrdGprTmkyT09MSjh6NW5tVTR2aVdEZUNvaDhDS1ZuL0lSSTFOQVBWU
- k0yTEl1amRlbmN6YVE3WlFBQUFJQXROVHNCTGNGQlFxL2tMa0IzanNENEZaU29sMUhpc2VBQWh5Sn
- Y4K1VueTZkWEozM2Z6bzhINWYwSlh2R2RMY0NvOWhhTUs0RmpGcjkxQ2JwcXFpYitxUFQyS3Y3L25
- kaG9NclYxZ05kZEtOSEJocVdFekF6NWJxR1E0ak85WGZyeE1Xc2c0SGJ0amlQVW92V01ma0g5UHVz
- WlNKV3Q4WFlJY3Zydnp3aXdBQT09IHJvb3RAdmlsaS53ZWJzYWdlcy5jb20K
-userPassword:: e1NTSEF9SEdZNkw2VWNDRzN1TzQySlo4eENMNTdiNHJoS1N6TXNwWWVCRXc9PQ=
-EOF
+#sshPublicKey:: c3NoLWRzcyBBQUFBQjNOemFDMWtjM01BQUFDQkFMbHZBVEJKM0cyYkZzTUlmbFl
+# sNzZEVjE2QnNwaEJwaEZnMWpJbFBxVUs0aFVtNnZCZUQzRklCNG44Qml0b1ZiTUpBRG92M1BuWnVy
+# YjFTdHViRVIwamxqWXhhcXZHbWJsQys0YUo0WnZYOWpraXNkejkwNFEyL05EZ3k5NEVlZlRldEtmT
+# DhFdXovUDQrMG5JNzJQcVZmRDhjbWxUcXAwOVk4WDZTcjR1SnRBQUFBRlFEUGFPdVZuTXdjdVlneU
+# NBR2RjSUs4MXRtRVR3QUFBSUF1TjF3R21GZC85VjBVM1EvT1A5V21XZmNDemVIR29jdUhRNzk5b2J
+# KZTBiSCtlSXcvcklRalJydkFpMmp2cFNTRUJ1aHpKU0FrRE0xMTdkREZJZUZNYUtHY0hyMWpJZU9a
+# K1NObFI5MU5MWFBvYUszUlVrdGprTmkyT09MSjh6NW5tVTR2aVdEZUNvaDhDS1ZuL0lSSTFOQVBWU
+# k0yTEl1amRlbmN6YVE3WlFBQUFJQXROVHNCTGNGQlFxL2tMa0IzanNENEZaU29sMUhpc2VBQWh5Sn
+# Y4K1VueTZkWEozM2Z6bzhINWYwSlh2R2RMY0NvOWhhTUs0RmpGcjkxQ2JwcXFpYitxUFQyS3Y3L25
+# kaG9NclYxZ05kZEtOSEJocVdFekF6NWJxR1E0ak85WGZyeE1Xc2c0SGJ0amlQVW92V01ma0g5UHVz
+# WlNKV3Q4WFlJY3Zydnp3aXdBQT09IHJvb3RAdmlsaS53ZWJzYWdlcy5jb20K
+#userPassword:: e1NTSEF9SEdZNkw2VWNDRzN1TzQySlo4eENMNTdiNHJoS1N6TXNwWWVCRXc9PQ=
+#EOF
 
 }
 
@@ -206,18 +206,6 @@ IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
 [ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
 [ -z ${IPADDR} ]&& ( echo "I cannot determine my IP address"; exit -1)
 echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
-
-####################################
-# confirm and store the secret
-####################################
-
-if [ ! -z ${SUPPLIED_SECRET} ];then
-    secret-init ${SUPPLIED_SECRET}
-    ldap-bind || ldapadd-selfrecord
-else
-    secret-init
-    ldapadd-selfrecord
-fi
 
 ####################################
 # Try to determine the distribution
@@ -262,3 +250,14 @@ case "${DISTRO}" in
         exit -2;
     ;;
 esac
+
+####################################
+# Save the secret, bind to ldap
+####################################
+if [ ! -z ${SUPPLIED_SECRET} ];then
+    secret-init ${SUPPLIED_SECRET}
+    ldap-bind || ldapadd-selfrecord
+else
+    secret-init
+    ldapadd-selfrecord
+fi
