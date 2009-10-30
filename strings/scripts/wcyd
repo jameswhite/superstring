@@ -198,7 +198,7 @@ EOF
                                              $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,""); 
                                              print "userPassword: " .  $hashedPasswd . "\n";
                                            ' $(SECRET) ${SALT}) 
-    ldif_dump "userPassword::" "${PASSWD}" >> ${LDIF}
+    ldif_dump "userPassword" "${PASSWD}" >> ${LDIF}
  
     cat ${LDIF}
     rm ${LDIF}
