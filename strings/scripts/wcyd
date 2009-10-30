@@ -182,7 +182,10 @@ EOF
 ####################################
 [ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
 echo $#
-[ $# -le 1 ]||usage
+if [ $# -le 1 ]; then
+    echo "not enough arguments"
+    usage
+fi
 DESIRED_FQDN=$1; 
 SUPPLIED_SECRET=$2; 
 echo "${DESIRED_FQDN}"|grep  "\."
