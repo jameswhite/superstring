@@ -261,6 +261,7 @@ esac
 # Save the secret, bind to ldap
 ####################################
 /usr/local/sbin/ldap.conf-init
+/usr/local/sbin/testldap > /dev/null || exit 1
 if [ ! -z ${SUPPLIED_SECRET} ];then
     secret-init ${SUPPLIED_SECRET}
     ldap-bind || ldapadd-selfrecord
