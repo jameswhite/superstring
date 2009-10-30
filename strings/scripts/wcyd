@@ -197,7 +197,7 @@ EOF
                                              $ctx->add($ARGV[1]); 
                                              $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,""); 
                                              print "userPassword: " .  $hashedPasswd . "\n";
-                                           ' $(SECRET) ${SALT}
+                                           ' $(SECRET) ${SALT} >> ${LDIF}
     cat ${LDIF}
     rm ${LDIF}
 }
