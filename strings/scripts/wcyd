@@ -316,6 +316,5 @@ if [ ! -z ${SUPPLIED_SECRET} ];then
 else
     secret-init
     ldap.conf-init
-    testldap > /dev/null || exit 1
     ldapadd-selfrecord
 fi
