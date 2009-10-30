@@ -108,11 +108,15 @@ secret-init(){
     UMASK=$(umask)
     umask 0077
     if [ -z $SECRET ];then
+        SUPPLIED="Auto-Generated"
         SECRET=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum|\
                      perl -MMIME::Base64 -ne 'print encode_base64($_)')
+    else
+        SUPPLIED="Providedk"
     fi
 /bin/cat<<EOSEC>/usr/local/sbin/secret
 #!/bin/bash
+# Password: ${SUPPLIED}
 echo -n "${SECRET}"
 EOSEC
 
