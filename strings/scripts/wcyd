@@ -112,7 +112,7 @@ secret-init(){
         SECRET=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum|\
                      perl -MMIME::Base64 -ne 'print encode_base64($_)')
     else
-        SUPPLIED="Providedk"
+        SUPPLIED="Provided"
     fi
 /bin/cat<<EOSEC>/usr/local/sbin/secret
 #!/bin/bash
@@ -124,17 +124,24 @@ EOSEC
     chown root:root /usr/local/sbin/secret
     chmod 700 /usr/local/sbin/secret
     umask ${UMASK}
+    if [ ! -f /root/.ssh/id_dsa.pub ];then
+        if [ ! -d /root/.ssh ];then
+            mkdir -p /root/.ssh
+            chown root:root /root/.ssh
+            chmod 700 /root/.ssh
+        fi
+        ssh-keygen -t dsa -N '' -f /root/.ssh/id_dsa>/dev/null 2>&1
+    fi
 }
 
 ldap-bind(){
     LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
     RESULT=1; IDX=0;
-    while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do 
-    ldapsearch -xH ${LDAP_URIS[${IDX}]}                                                               \
+    while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do
+    ldapsearch -xH ${LDAP_URIS[${IDX}]}                                                 \
                -b "dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"                            \
                -D "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
-               -w "$(/usr/local/sbin/secret)"                                           \ 
-               "(cn=$(hostname -s))"
+               -w "$(/usr/local/sbin/secret)" "(cn=$(hostname -s))"
     RESULT=$?
     IDX=`expr ${IDX} + 1`
     done
@@ -185,7 +192,6 @@ done
 # Some usage validation
 ####################################
 [ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
-echo $#
 if [ $# -le 1 ]; then
     echo "not enough arguments"
     usage
@@ -254,6 +260,7 @@ esac
 ####################################
 # Save the secret, bind to ldap
 ####################################
+/usr/local/sbin/ldap.conf-init
 if [ ! -z ${SUPPLIED_SECRET} ];then
     secret-init ${SUPPLIED_SECRET}
     ldap-bind || ldapadd-selfrecord
