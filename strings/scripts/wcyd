@@ -218,12 +218,11 @@ EOF
     RESULT=1; IDX=0;
     while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do
     ldapdelete -xH ${LDAP_URIS[${IDX}]}                                                 \
-               -b "dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"                            \
                -D "uid=${LDAP_USER},ou=People,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
                -w "${LDAP_PASSWORD}" "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" && \
     ldapadd -xH ${LDAP_URIS[${IDX}]}                                                 \
             -D "uid=${LDAP_USER},ou=People,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
-            -w "${LDAP_PASSWORD}" \
+            -w "${LDAP_PASSWORD}"                                                    \
             -f ${LDIF}
     RESULT=$?
     IDX=`expr ${IDX} + 1`
