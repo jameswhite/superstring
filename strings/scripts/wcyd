@@ -175,19 +175,32 @@ objectClass: ipHost
 objectClass: top
 objectClass: simpleSecurityObject
 objectClass: ldapPublicKey
-cn: $(hostname -f)
+cn: $(hostname -s)
 configSet: ldap_client
 EOF
 
-# insert all the IP addresses
-for IP in `ifconfig | grep "inet addr:"|sed -e 's/.*inet addr://g' -e 's/ .*//g'|grep -v 127.0.0.1`;do
-echo "ipHostNumber: ${IP}" >> ${LDIF}
-done
-cat /root/.ssh/id_dsa.pub|while read LINE; do
-    ldif_dump "sshPublicKey" "${LINE}" >> ${LDIF}
-done
-cat ${LDIF}
-rm ${LDIF}
+    # insert all the IP addresses
+    for IP in `ifconfig | grep "inet addr:"|sed -e 's/.*inet addr://g' -e 's/ .*//g'|grep -v 127.0.0.1`;do
+    echo "ipHostNumber: ${IP}" >> ${LDIF}
+    done
+    
+    # insert the id_dsa.pub
+    cat /root/.ssh/id_dsa.pub|while read LINE; do
+        ldif_dump "sshPublicKey" "${LINE}" >> ${LDIF}
+    done
+
+    # insert the SSHA password
+    SALT=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum| perl -MMIME::Base64 -ne 'print encode_base64($_)'|cut -b 1-4)
+    perl -MDigest::SHA1 -MMIME::Base64 -le '
+                                            $ctx = Digest::SHA1->new;
+                                            $ctx->add($ARGV[0]);
+                                            $ctx->add($ARGV[1]); 
+                                            $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,"");
+                                            print 'userPassword: ' .  $hashedPasswd . "\n";
+                                           ' $(SECRET} ${SALT}
+
+    cat ${LDIF}
+    rm ${LDIF}
 }
 
 ################################################################################
