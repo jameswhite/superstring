@@ -195,7 +195,7 @@ EOF
                                              $ctx = Digest::SHA1->new; 
                                              $ctx->add($ARGV[0]); 
                                              $ctx->add($ARGV[1]); 
-                                             $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "salt" ,""); 
+                                             $hashedPasswd = "{SSHA}" . encode_base64($ctx->digest . "$ARGV[1]" ,""); 
                                              print "userPassword: " .  $hashedPasswd . "\n";
                                            ' $(secret) ${SALT}) 
     ldif_dump "userPassword" "${PASSWD}" >> ${LDIF}
