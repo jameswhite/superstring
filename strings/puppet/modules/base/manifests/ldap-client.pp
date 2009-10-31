@@ -1,5 +1,3 @@
-include base::cacert
-
 class base::ldap-client {
     ############################################################################    
     # link the domain cacert
