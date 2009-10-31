@@ -270,7 +270,7 @@ echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
 ####################################
 # Try to determine the distribution
 ####################################
-apt-get install -y lsb || yum install -y redhat-lsb
+apt-get install -y lsb-release || yum install -y redhat-lsb
 DISTRO=$(lsb_release -i | sed -e 's/Distributor ID:[ \t]*//g')
 
 ####################################
