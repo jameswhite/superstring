@@ -1,0 +1,139 @@
+#!/bin/bash
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/sbin:/usr/local/sbin:/sbin"
+
+usage(){
+    echo "   USAGE: $0 {-g <ldap_posix_group> | -u <ldap_posix_uidname> } [-f outfile] [-o <owner>] [ -p <perms>]"
+    echo "Examples: $0 -g bofh -u whitejs -f /root/.ssh/authorized_keys"
+    echo "          $0 -g bofh -g admins -u james > /root/.ssh/authorized_keys"
+    echo 
+    exit 1;
+}
+
+while [ -n "$1" ]; do
+case $1 in
+    -f) outfile=$2;shift 2;;
+    -g) group="${group} $2";shift 2;;
+    -h) usage;shift 1;;
+    -o) owner=$2;shift 2;;
+    -p) perms=$2;shift 2;;
+    -u) user="${user} $2";shift 2;;
+    --) shift;break;; # end of options
+    -*) echo "error: no such option $1. -h for help";exit 1;;
+     *)  break;;
+esac
+done
+
+[ -z "$perms" ] && perms=644;
+[ -z "$owner" ] && owner=root;
+
+# drop the leading space
+group=$(echo ${group}|sed -e 's/^ *//g')
+user=$(echo ${user}|sed -e 's/^ *//g')
+if [ -z "$user" -a -z "$group" ];then usage;fi
+
+TMPFILE=$(mktemp /tmp/authorized_keys.XXXX)
+cat /dev/null > ${TMPFILE}
+
+################################################################################
+# Fetch all the keys
+################################################################################
+# iterate through the groups and append their keys
+if [ ! -z "${group}" ] ;then 
+    for g in `echo ${group}`;do 
+        for admin in `getent group "${g}" |awk -F: '{print $4}'|sed -e 's/,/ /g'`;do   
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(uid=${admin})(sshPublicKey=*))"        \
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey::" | awk '{print $2}' \
+            | perl -MMIME::Base64 -le ' 
+                                        while(chomp($line=<STDIN>)){ 
+                                                                     $key=decode_base64($line); 
+                                                                     chomp($key); 
+                                                                     print $key;
+                                                                   }
+                                      '
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(uid=${admin})(sshPublicKey=*))"        \
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:" | sed -e 's/^sshPublicKey: //'
+        done >> ${TMPFILE}
+    done
+fi
+
+# Append all the users' ssh keys
+if [ ! -z "${user}" ] ;then 
+    for admin in `echo ${user}`;do
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(uid=${admin})(sshPublicKey=*))"        \
+        | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey::" | awk '{print $2}' \
+        | perl -MMIME::Base64 -le ' 
+                                    while(chomp($line=<STDIN>)){ 
+                                                                 $key=decode_base64($line); 
+                                                                 chomp($key); 
+                                                                 print $key;
+                                                               }
+                                  '
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(uid=${admin})(sshPublicKey=*))"        \
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:" | sed -e 's/^sshPublicKey: //'
+    done >> ${TMPFILE}
+fi
+
+################################################################################
+# Write out the file as directed
+################################################################################
+if [ ! -z "$outfile" ]; then
+   # replace the outfile if it has changed
+   autodir=$(ps -ef | grep aut[o]dir|wc -l)
+   # mount the users homedir
+   ownerhome=$(getent passwd ${owner}|awk -F: '{print $6}') 
+   ownergroup=$(getent passwd ${owner}|awk -F: '{print $4}') 
+   if [ "${autodir}" -gt 0 -a "$owner" != "root" ];then
+       su - "$owner" -c /bin/pwd > /dev/null
+   else
+      if [ ! -d "$ownerhome" ] ;then 
+          mkdir -p "$ownerhome"
+          /bin/cp /etc/skel/.* "$ownerhome"
+          chown -R $owner:$ownergroup $ownerhome 
+      fi
+   fi
+   # make the parent dir if not exist
+   file_dir=$(dirname $outfile)
+   if [ ! -d "${file_dir}" ];then
+       mkdir -p "${file_dir}"
+       chown $owner:$ownergroup "${file_dir}"
+       chmod 755 "${file_dir}"
+   fi
+   new_md5=$(sort -u ${TMPFILE}|md5sum|awk '{print $1}')
+   if [ -f ${outfile} ]; then
+       old_md5=$(sort -u ${outfile}|md5sum|awk '{print $1}')
+   else
+       old_md5=$(echo -n ''| md5sum|awk '{print $1}')
+   fi
+   if [ "${old_md5}" != "${new_md5}" ];then
+       # never overwrite with an empty file, as something had to go wrong
+       # if they have keys in ldap but the file is empty...
+       if [ -s ${TMPFILE} ]; then
+           sort -u "${TMPFILE}" > "${outfile}"
+       fi
+   fi
+ 
+   if [ -f ${outfile} ];then
+       chown $owner:$ownergroup "$outfile"
+       chmod "$perms" "$outfile"
+   fi
+else
+    # otherwise dump it to stdout
+    cat $TMPFILE
+fi
+rm ${TMPFILE}

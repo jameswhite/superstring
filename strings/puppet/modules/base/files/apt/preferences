@@ -1,0 +1,7 @@
+Package: *
+Pin: release a=lenny
+Pin-Priority: 500
+
+Package: *
+Pin: release a=lenny-backports
+Pin-Priority: 200

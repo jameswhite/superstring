@@ -1,0 +1,17 @@
+#!/bin/bash
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+GITROOT="/var/cache/git"
+
+REPOSITORY="superstring"
+
+REPOROOT="${GITROOT}/${REPOSITORY}"
+(cd ${REPOROOT}; git pull)
+
+PUPPET="strings/puppet"
+PUPPETROOT="${REPOROOT}/${PUPPET}"
+
+if [ -f ${PUPPETROOT}/hosts/$(hostname -f).pp ]; then
+    puppet --debug --modulepath=${PUPPETROOT}/modules ${PUPPETROOT}/hosts/$(hostname -f).pp
+else
+    puppet --debug --modulepath=${PUPPETROOT}/modules ${PUPPETROOT}/hosts/default.pp
+fi

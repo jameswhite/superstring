@@ -1,0 +1,36 @@
+#!/bin/bash
+# we need credentials 
+[ -f /usr/local/sbin/secret ]||exit
+
+SECRET=$(/usr/local/sbin/secret)
+if [ -f /etc/ldap/ldap.conf ];then
+    grep ${SECRET} /etc/ldap/ldap.conf > /dev/null 2>&1 && exit 0
+fi
+[ -x /usr/local/sbin/secret ] || exit 1
+[ -z "$(dnsdomainname)" ] && exit 1
+[ -z "$(hostname -s)" ] && exit 1
+URI=$(
+    for h in `dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print $NF}'|sed -e 's/\.$//'`;do
+        echo "$(traceroute ${h}|grep -v '* * *'|tail -1 |awk '{print $1}') ${h}"
+    done | sort -n | awk '{if($2!=""){print " ldaps://"$2":636,"}}' | tr '\n' ' '|sed -e 's/, *$//'; 
+)
+[ -z "${URI}" ] && exit 1
+BASEDN="dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"
+HOST=$(hostname -s)
+SECRET=$(/usr/local/sbin/secret)
+
+cat<<EOF>/etc/ldap/ldap.conf
+uri ${URI}
+base ${BASEDN}
+ldap_version 3
+scope sub
+TLS_CACERT /etc/ldap/ssl/domain_trustchain.pem
+TLS_REQCERT allow
+binddn cn=${HOST},ou=Hosts,${BASEDN}
+bindpw ${SECRET}
+pam_filter objectclass=posixAccount
+pam_login_attribute uid
+pam_crypt local
+pam_password md5
+EOF
+chmod 400 /etc/ldap/ldap.conf

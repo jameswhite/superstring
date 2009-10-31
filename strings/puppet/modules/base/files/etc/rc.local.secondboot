@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/local/sbin/pupprun > /var/log/puppet/secondrun.log 2>&1
+/bin/mv /etc/rc.local.dist /etc/rc.local

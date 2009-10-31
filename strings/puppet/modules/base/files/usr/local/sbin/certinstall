@@ -1,0 +1,4 @@
+#!/bin/bash
+PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+DOMAIN=$(dnsdomainname)
+CERT_URI=$(dig +short -ttxt ca-cert.websages.com)

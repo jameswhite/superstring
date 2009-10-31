@@ -1,0 +1,20 @@
+#!/bin/bash
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+/usr/local/sbin/authkeys -g bofh -o root -p 0600 -f /root/.ssh/authorized_keys
+for user in $(
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(uid=*)(sshPublicKey=*))"                                            \
+                   | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "uid:" | awk -F: '{print $2}'
+             ); do
+    basegroup=$(getent passwd ${user}|awk -F: '{print $4}')
+    if [ ${basegroup} -eq 100 ]; then
+        echo $user
+        /usr/local/sbin/authkeys -u ${user} \
+                                 -o ${user} \
+                                 -f $(getent passwd ${user} \
+                                 | awk  -F: '{print $6}')/.ssh/authorized_keys
+    fi 
+done

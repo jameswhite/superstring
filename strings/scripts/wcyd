@@ -282,6 +282,7 @@ case "${DISTRO}" in
         apt-get update >> ${LOG} 2>&1 && apt-get dist-upgrade -y >> ${LOG} 2>&1
         [ -z $(which dig) ] && apt-get install -y dns-browse >> ${LOG} 2>&1
         [ -z $(which git) ] && apt-get install -y git-core >> ${LOG} 2>&1
+        [ -z $(which ldapdelete) ] && apt-get install -y ldap-utils >> ${LOG} 2>&1
         [ -z $(which puppet) ] && apt-get install -y puppet >> ${LOG} 2>&1
         fix_etc_hosts
         fix_etc_hostname

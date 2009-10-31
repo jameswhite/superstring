@@ -1,0 +1,10 @@
+RUN_AUTOHOME="yes"
+RUN_AUTOGROUP="yes"
+AUTOHOME_HOME=/home
+AUTOGROUP_HOME=/group
+AUTOHOME_TIMEOUT=660
+AUTOGROUP_TIMEOUT=300
+AUTOHOME_MODULE="/usr/lib/autodir/autohome.so"
+AUTOGROUP_MODULE="/usr/lib/autodir/autogroup.so"
+AUTOHOME_OPTIONS="realpath=/opt/auto/home,level=2,skel=/etc/skel"
+AUTOGROUP_OPTIONS="realpath=/opt/auto/group,level=2"

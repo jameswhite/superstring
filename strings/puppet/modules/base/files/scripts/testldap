@@ -1,0 +1,15 @@
+#!/bin/bash
+ldap-bind(){
+    LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
+    RESULT=1; IDX=0;
+    while [ ${RESULT} -ne 0 -a ${IDX} -le ${#LDAP_URIS[@]} ];do
+    ldapsearch -xH ${LDAP_URIS[${IDX}]}                                                 \
+               -b "dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"                            \
+               -D "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
+               -w "$(/usr/local/sbin/secret)" "(cn=$(hostname -s))"
+    RESULT=$?
+    IDX=`expr ${IDX} + 1`
+    done
+    return ${RESULT}
+}
+ldap-bind
