@@ -270,21 +270,14 @@ echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
 ####################################
 # Try to determine the distribution
 ####################################
-if [ -f /etc/debian_version ];then
-    DISTRO="debian"
-else 
-    if [ -f /etc/redhat_release ];then 
-        DISTRO="redhat"
-    else
-        DISTRO="unknown"
-    fi
-fi
+apt-get install -y lsb || yum install -y redhat-lsb
+DISTRO=$(lsb_release -i | sed -e 's/Distributor ID:[ \t]*//g')
 
 ####################################
 # Set up configuration management
 ####################################
 case "${DISTRO}" in
-    debian)
+    Debian)
         echo "I appear to be running debian."
         apt-get update >> ${LOG} 2>&1 && apt-get dist-upgrade -y >> ${LOG} 2>&1
         [ -z $(which dig) ] && apt-get install -y dns-browse >> ${LOG} 2>&1
@@ -295,7 +288,7 @@ case "${DISTRO}" in
         fix_etc_mailname
         puppet_init
     ;;
-    redhat)
+    CentOS|RedHatEnterpriseServer)
         echo "I appear to be running redhat."
         yum clean all -y 
         yum update -y
