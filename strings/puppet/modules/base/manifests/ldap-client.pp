@@ -8,6 +8,7 @@ class base::ldap-client {
     file { '/etc/ldap/ssl/domain_trustchain.pem':
         ensure => 'link',
         target => '/etc/ssl/certs/websages.com_trustchain.pem',
+        require => File['/etc/ldap/ssl'],
         require => Class['base::cacert']
     }
     ############################################################################    
