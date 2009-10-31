@@ -4,6 +4,11 @@ error=0 ; trap "error=$((error|1))" ERR
 
 # Copy our customized hook and script and "patch" the nfsroot
 rsync -avzP /var/lib/fai/config/files/etc/initramfs-tools/ /etc/initramfs-tools/
+
+# Copy our customized hook and script and "patch" the target so subsequent runs will work...
+rsync -avzP /var/lib/fai/config/files/etc/initramfs-tools/ $target/etc/initramfs-tools/
+
+# copy important files back to nfsroot so we can run mkinitramfs
 cp $target/etc/fstab /etc/fstab
 cp $target/etc/crypttab /etc/crypttab
 
