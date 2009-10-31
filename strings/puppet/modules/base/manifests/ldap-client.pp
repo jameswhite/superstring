@@ -10,7 +10,7 @@ class base::ldap-client {
     file {'/etc/ldap/ssl/domain_trustchain.pem':
         ensure => 'link',
         target => '/etc/ssl/certs/websages.com_trustchain.pem',
-         require => Exec['certinstall'],
+         require => Exec['base::cacert::certinstall'],
     }
     ############################################################################    
     # dynamic LDAP configuration via scripts
