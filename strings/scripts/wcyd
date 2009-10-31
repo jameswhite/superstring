@@ -88,11 +88,12 @@ fix_etc_mailname(){
 puppet_init(){
     if [ ! -d /var/cache/git ]; then mkdir -p /var/cache/git;fi
     if [ ! -d /root/.ssh ];  then (umask 077; mkdir -p /root/.ssh);fi
-    ssh-keyscan github.com >> /root/.ssh/known_hosts
-    [ -d /var/cache/git/websages ]    || (cd /var/cache/git; git clone git@github.com:fapestniegd/websages.git)
-    [ -d /var/cache/git/superstring ] || (cd /var/cache/git; git clone git://github.com/fapestniegd/superstring.git)          
-    [ -d /var/cache/git/wcyd ]        || (cd /var/cache/git; git clone git://github.com/fapestniegd/wcyd.git)          
-    [ -d /var/log/puppet ]            || /bin/mkdir -p /var/log/puppet
+    echo "Downloading Repositories"
+    ssh-keyscan github.com >> /root/.ssh/known_hosts >> ${LOG} 2>&1
+    [ -d /var/cache/git/websages ]   ||(cd /var/cache/git; git clone git@github.com:fapestniegd/websages.git)>> ${LOG} 2>&1
+    [ -d /var/cache/git/superstring ]||(cd /var/cache/git; git clone git://github.com/fapestniegd/superstring.git)>> ${LOG} 2>&1 
+    [ -d /var/cache/git/wcyd ]       ||(cd /var/cache/git; git clone git://github.com/fapestniegd/wcyd.git)>> ${LOG} 2>&1
+    [ -d /var/log/puppet ]           ||/bin/mkdir -p /var/log/puppet
     if [ -f /var/cache/git/websages/etc/puppet/hosts/$(hostname -f).pp ]; then
         puppet --debug --modulepath=/var/cache/git/websages/etc/puppet/modules/ \
                /var/cache/git/websages/etc/puppet/hosts/$(hostname -f).pp \
@@ -105,6 +106,7 @@ puppet_init(){
 }
 
 secret-init(){
+    echo "Initializing secret"
     SECRET=$1;
     UMASK=$(umask)
     umask 0077
