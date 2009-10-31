@@ -1,7 +1,12 @@
 #!/bin/bash
 PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 DOMAIN=$(dnsdomainname)
-CERT_URI=$(dig +short -ttxt ca-cert.websages.com)
+CERT_URI=$(dig +short -ttxt ca-cert.${DOMAIN} | sed -e 's/"//g')
 if [ ! -d /etc/ssl/certs ]; then mkdir /etc/ssl/certs;fi
-wget -qO /etc/ssl/certs/${DOMAIN}_trustchain.pem "${CERT_URI}"
-(cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
+TEMP=$(mktemp /var/tmp/cacert.XXXX)
+wget -qO ${TEMP}  "${CERT_URI}"
+if [ -s ${TEMP} ];then
+    wget -qO /etc/ssl/certs/${DOMAIN}_trustchain.pem "${CERT_URI}"
+    (cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
+fi
+rm ${TEMP}
