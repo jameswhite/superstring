@@ -8,7 +8,7 @@ class base::cacert {
         mode   => '0744',
         source => 'puppet:///base/usr/local/sbin/certinstall'
     }
-    exec { 'certintstall':
+    exec { 'certinstall':
          path    => '/usr/local/sbin',
          command => 'ldap.conf-init',
          require => File['/usr/local/sbin/certinstall']
