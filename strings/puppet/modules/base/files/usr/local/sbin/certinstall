@@ -2,3 +2,6 @@
 PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 DOMAIN=$(dnsdomainname)
 CERT_URI=$(dig +short -ttxt ca-cert.websages.com)
+if [ ! -d /etc/ssl/certs ]; then mkdir /etc/ssl/certs;fi
+wget -qO /etc/ssl/certs/${DOMAIN}_trustchain.pem "${CERT_URI}"
+(cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)

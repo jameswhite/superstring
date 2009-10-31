@@ -1,9 +1,12 @@
+include base::ldap-client
+
 class base::sshkeys {
     file { '/usr/local/sbin/authkeys':
         owner  => 'root',
         group  => 'root',
         mode   => '0755',
-        source => 'puppet:///base/usr/local/sbin/authkeys'
+        source => 'puppet:///base/usr/local/sbin/authkeys',
+        require => Exec['testldap'],
     }
     file { '/usr/local/sbin/allauthkeys':
         owner  => 'root',

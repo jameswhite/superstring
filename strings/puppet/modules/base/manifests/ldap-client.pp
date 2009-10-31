@@ -1,9 +1,16 @@
+include base::cacert
+
 class base::ldap-client {
     ############################################################################    
     # link the domain cacert
     ############################################################################    
     file {'/etc/ldap/ssl':
         ensure => 'directory'
+    }
+    file {'/etc/ldap/ssl/domain_trustchain.pem':
+        ensure => 'link',
+        target => '/etc/ssl/certs/websages.com_trustchain.pem',
+         require => Exec['certintstall'],
     }
     ############################################################################    
     # dynamic LDAP configuration via scripts
@@ -20,10 +27,16 @@ class base::ldap-client {
         mode   => '0744',
         source => 'puppet:///base/scripts/testldap'
     }
+    exec { 'testldap':
+         path    => '/usr/local/sbin',
+         command => 'testldap',
+         require => File['/usr/local/sbin/testldap'],
+    }
     exec { 'ldap-conf-init':
          path    => '/usr/local/sbin',
          command => 'ldap.conf-init',
          require => File['/usr/local/sbin/ldap.conf-init'],
+         require => Exec['testldap'],
     }
     ############################################################################    
     # pluggable authentication module configuration

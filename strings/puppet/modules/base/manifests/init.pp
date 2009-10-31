@@ -10,7 +10,6 @@
 #   - profit.
 ################################################################################
 class base {
-    include apt
     file { '/root/.ssh':
         ensure => 'directory',
         owner  => 'root',
@@ -58,6 +57,7 @@ class base {
 }
 
 class base::debian {
+    include apt
     file { '/etc/locale.gen':
         owner  => 'root',
         group  => 'root',
