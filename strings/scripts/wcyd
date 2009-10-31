@@ -22,10 +22,10 @@ usage(){
 ####################################
 
 fix_etc_hosts(){
+    FQDN=$1
     echo "rewriting /etc/hosts"
     if [ -f /etc/.new_etc_hosts ];then rm /etc/.new_etc_hosts;fi
-    HNAME=$(hostname -s)
-    FQDN=$(hostname -f)
+    HNAME=$(echo ${FQDN} |sed -e 's/\..*//g')
     LOCAL=$(grep "127.0.0.1" /etc/hosts| head -1)
     if [ ! -z "${LOCAL}" ];then 
         echo "${LOCAL}"|grep -q "127.0.0.1 *localhost.localdomain *localhost" || \
@@ -268,8 +268,8 @@ echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
 ####################################
 # Try to determine the distribution
 ####################################
-apt-get install -y lsb-release || yum install -y redhat-lsb
-DISTRO=$(lsb_release -i | sed -e 's/Distributor ID:[ \t]*//g')
+(apt-get install -y lsb-release || yum install -y redhat-lsb  )>> ${LOG} 2>&1
+DISTRO=$(lsb_release -i | sed -e 's/Distributor ID:[ \t]*//g') 
 
 ####################################
 # Set up configuration management
@@ -282,7 +282,7 @@ case "${DISTRO}" in
         [ -z $(which git) ] && apt-get install -y git-core >> ${LOG} 2>&1
         [ -z $(which ldapdelete) ] && apt-get install -y ldap-utils >> ${LOG} 2>&1
         [ -z $(which puppet) ] && apt-get install -y puppet >> ${LOG} 2>&1
-        fix_etc_hosts
+        fix_etc_hosts "${DESIRED_FQDN}"
         fix_etc_hostname
         fix_etc_mailname
         puppet_init
