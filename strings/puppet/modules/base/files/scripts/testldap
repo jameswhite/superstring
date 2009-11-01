@@ -13,4 +13,5 @@ ldap-bind(){
     done
     return ${RESULT}
 }
-exit ldap-bind > /dev/null 2>&1
+ldap-bind > /dev/null 2>&1
+exit $?
