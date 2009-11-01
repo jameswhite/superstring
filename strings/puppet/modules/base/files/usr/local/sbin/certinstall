@@ -11,7 +11,7 @@ if [ -s ${TEMP} ];then
         (cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
     fi
     rm ${TEMP}
-    /usr/bin/c_rehash
+    /usr/bin/c_rehash > /dev/null 2>&1
     exit 0 
 fi
 rm ${TEMP}
