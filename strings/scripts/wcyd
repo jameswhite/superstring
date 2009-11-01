@@ -325,3 +325,4 @@ else
     ldapadd-selfrecord
 fi
 /usr/local/sbin/pupprun > /var/log/puppet/post-wcyd.log
+/etc/init.d/nscd restart
