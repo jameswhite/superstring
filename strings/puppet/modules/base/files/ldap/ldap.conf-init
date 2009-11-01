@@ -2,35 +2,33 @@
 # we need credentials 
 logexit(){
    EXIT=$1
-   echo "$0 exited ${EXIT} last time." >> /var/log/logexit.log
+   WHY=$2
+   [ -z "${WHY}" ] && WHY="no reason specified"
+   echo "$0 exited ${EXIT} last time because ${WHY}." >> /var/log/logexit.log
    exit ${EXIT}
 }
 
 
 if [ ! -x /usr/local/sbin/secret ]; then
-    echo "I cannot run /usr/local/sbin/secret"
-    logexit 1;
+    logexit 1 "I cannot run /usr/local/sbin/secret";
 fi
 
 SECRET=$(/usr/local/sbin/secret)
 if [ -f /etc/ldap/ldap.conf ];then
     grep ${SECRET} /etc/ldap/ldap.conf > /dev/null 2>&1 
     if [ $? -eq 0 ]; then
-        logexit 0;
+        logexit 0 "secret is in ldap.conf"
     fi
 fi
 
 if [ ! -x /usr/local/sbin/secret ]; then 
-    echo "/usr/local/sbin/secret not executable"
-    logexit 1
+    logexit 1 "/usr/local/sbin/secret not executable"
 fi
 if [ -z "$(dnsdomainname)" ] ;then
-    echo "cannot determine dns domain name"
-    logexit 1
+    logexit 1 "cannot determine dns domain name"
 fi
 if [ -z "$(hostname -s)" ]; then 
-    echo "cannot determine short host name"
-    logexit 1
+    logexit 1 "cannot determine short host name"
 fi
 URI=$(
     for h in `dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print $NF}'|sed -e 's/\.$//'`;do
@@ -38,8 +36,7 @@ URI=$(
     done | sort -n | awk '{if($2!=""){print " ldaps://"$2":636,"}}' | tr '\n' ' '|sed -e 's/, *$//'; 
 )
 if [ -z "${URI}" ] ;then
-    echo "could not get URIs"
-     logexit 1
+     logexit 1 "could not get URIs"
 fi
 BASEDN="dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"
 HOST=$(hostname -s)
@@ -61,5 +58,4 @@ pam_password md5
 EOF
 
 chmod 400 /etc/ldap/ldap.conf
-echo "everything looks good"
-logexit 0
+logexit 0 "everything looks good"
