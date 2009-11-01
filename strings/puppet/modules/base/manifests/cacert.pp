@@ -6,7 +6,7 @@ class base::cacert {
         owner  => 'root',
         group  => 'root',
         mode   => '0744',
-        source => 'puppet:///base/usr/local/sbin/certinstall'
+        source => 'puppet:///base/usr/local/sbin/certinstall && true || false'
     }
     exec { 'certinstall':
          path    => '/usr/local/sbin',
