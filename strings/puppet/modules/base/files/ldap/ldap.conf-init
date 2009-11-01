@@ -8,7 +8,7 @@ fi
 SECRET=$(/usr/local/sbin/secret)
 if [ -f /etc/ldap/ldap.conf ];then
     grep ${SECRET} /etc/ldap/ldap.conf > /dev/null 2>&1 
-    if [ $? ]; then
+    if [ $? -eq 0 ]; then
         echo "ldap.conf appears to already be set up"
     fi
    exit 0;
