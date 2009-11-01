@@ -2,7 +2,7 @@
 # we need credentials 
 logexit(){
    EXIT=$1
-   echo "$0 exited ${EXIT} last time." > /var/tmp/$(basename $0).log
+   echo "$0 exited ${EXIT} last time." >> /var/log/logexit.log
    exit ${EXIT}
 }
 
