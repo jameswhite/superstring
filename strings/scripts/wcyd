@@ -265,6 +265,10 @@ FQDN=$(hostname -f)
 # Assume the primary interface has the default route on it.
 IFACE=$(route -n|awk -v e='0.0.0.0' '{if(($1==e)&&($2!=e)){print $NF;}}'|head -1)
 IPADDR=$(ifconfig ${IFACE}|grep 'inet addr:'|cut -d: -f2|awk '{ print $1}')
+if [ ${IPADDR} == "127.0.0.1" ];then
+    IPADDR=$(ifconfig | grep 'inet addr:'|cut -d: -f2|awk '{if($1!="127.0.0.1"){print $1}}'| head -1)
+    echo "this looks like openvz, so i'm re-guessing the public ip is ${IPADDR}"
+fi
 [ -z ${IFACE} ]&& ( echo "I cannot determine the public interface"; exit -1)
 [ -z ${IPADDR} ]&& ( echo "I cannot determine my IP address"; exit -1)
 echo "Using ${IPADDR} on ${IFACE} to contact the policy host."
