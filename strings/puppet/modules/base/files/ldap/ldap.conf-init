@@ -1,5 +1,5 @@
 #!/bin/bash
-# we need credentials 
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 logexit(){
    EXIT=$1
    WHY=$2
