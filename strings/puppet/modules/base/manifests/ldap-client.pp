@@ -33,7 +33,7 @@ class base::ldap-client {
     }
     exec { 'ldap-conf-init':
          path    => '/usr/local/sbin',
-         command => 'ldap.conf-init && true || false',
+         command => 'ldap.conf-init;true',
          require => File['/usr/local/sbin/ldap.conf-init'],
     }
     ############################################################################    
