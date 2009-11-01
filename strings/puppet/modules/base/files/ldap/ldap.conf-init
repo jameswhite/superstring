@@ -19,7 +19,7 @@ BASEDN="dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"
 HOST=$(hostname -s)
 SECRET=$(/usr/local/sbin/secret)
 
-cat<<EOF>/etc/ldap/ldap.conf
+cat<<EOF > /etc/ldap/ldap.conf
 uri ${URI}
 base ${BASEDN}
 ldap_version 3
@@ -33,4 +33,6 @@ pam_login_attribute uid
 pam_crypt local
 pam_password md5
 EOF
+
 chmod 400 /etc/ldap/ldap.conf
+exit 0
