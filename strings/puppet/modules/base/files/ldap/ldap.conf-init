@@ -6,15 +6,27 @@ SECRET=$(/usr/local/sbin/secret)
 if [ -f /etc/ldap/ldap.conf ];then
     grep ${SECRET} /etc/ldap/ldap.conf > /dev/null 2>&1 && exit 0
 fi
-[ -x /usr/local/sbin/secret ] || exit 1
-[ -z "$(dnsdomainname)" ] && exit 1
-[ -z "$(hostname -s)" ] && exit 1
+if [ ! -x /usr/local/sbin/secret ]; then 
+    echo "/usr/local/sbin/secret not executable"
+    exit 1
+fi
+if [ -z "$(dnsdomainname)" ] ;then
+    echo "cannot determine dns domain name"
+    exit 1
+fi
+if [ -z "$(hostname -s)" ]; then 
+    echo "cannot determine short host name"
+    exit 1
+fi
 URI=$(
     for h in `dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print $NF}'|sed -e 's/\.$//'`;do
         echo "$(traceroute ${h}|grep -v '* * *'|tail -1 |awk '{print $1}') ${h}"
     done | sort -n | awk '{if($2!=""){print " ldaps://"$2":636,"}}' | tr '\n' ' '|sed -e 's/, *$//'; 
 )
-[ -z "${URI}" ] && exit 1
+if [ -z "${URI}" ] ;then
+    echo "could not get URIs"
+     exit 1
+fi
 BASEDN="dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"
 HOST=$(hostname -s)
 SECRET=$(/usr/local/sbin/secret)
@@ -35,4 +47,5 @@ pam_password md5
 EOF
 
 chmod 400 /etc/ldap/ldap.conf
+echo "everything looks good"
 exit 0
