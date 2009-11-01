@@ -1,29 +1,36 @@
 #!/bin/bash
 # we need credentials 
+logexit(){
+   EXIT=$1
+   echo "$0 exited ${EXIT} last time." > /var/tmp/$(basename $0).log
+   exit ${EXIT}
+}
+
+
 if [ ! -x /usr/local/sbin/secret ]; then
     echo "I cannot run /usr/local/sbin/secret"
-    exit 1;
+    logexit 1;
 fi
 
 SECRET=$(/usr/local/sbin/secret)
 if [ -f /etc/ldap/ldap.conf ];then
     grep ${SECRET} /etc/ldap/ldap.conf > /dev/null 2>&1 
     if [ $? -eq 0 ]; then
-        exit 0;
+        logexit 0;
     fi
 fi
 
 if [ ! -x /usr/local/sbin/secret ]; then 
     echo "/usr/local/sbin/secret not executable"
-    exit 1
+    logexit 1
 fi
 if [ -z "$(dnsdomainname)" ] ;then
     echo "cannot determine dns domain name"
-    exit 1
+    logexit 1
 fi
 if [ -z "$(hostname -s)" ]; then 
     echo "cannot determine short host name"
-    exit 1
+    logexit 1
 fi
 URI=$(
     for h in `dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print $NF}'|sed -e 's/\.$//'`;do
@@ -32,7 +39,7 @@ URI=$(
 )
 if [ -z "${URI}" ] ;then
     echo "could not get URIs"
-     exit 1
+     logexit 1
 fi
 BASEDN="dc=$(dnsdomainname|sed -e 's/\./,dc=/g')"
 HOST=$(hostname -s)
@@ -55,4 +62,4 @@ EOF
 
 chmod 400 /etc/ldap/ldap.conf
 echo "everything looks good"
-exit 0
+logexit 0
