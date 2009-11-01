@@ -320,3 +320,4 @@ else
     ldap.conf-init
     ldapadd-selfrecord
 fi
+/usr/local/sbin/pupprun > /var/log/puppet/post-wcyd.log
