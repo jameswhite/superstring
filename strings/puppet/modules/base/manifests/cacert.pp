@@ -6,11 +6,11 @@ class base::cacert {
         owner  => 'root',
         group  => 'root',
         mode   => '0744',
-        source => 'puppet:///base/usr/local/sbin/certinstall && true || false'
+        source => 'puppet:///base/usr/local/sbin/certinstall'
     }
     exec { 'certinstall':
          path    => '/usr/local/sbin',
-         command => 'ldap.conf-init',
+         command => 'certinstall',
          require => File['/usr/local/sbin/certinstall']
     }
     exec { 'c_rehash':
