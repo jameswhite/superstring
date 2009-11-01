@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 DOMAIN=$(dnsdomainname)
 CERT_URI=$(dig +short -ttxt ca-cert.${DOMAIN} | sed -e 's/"//g')
 if [ ! -d /etc/ssl/certs ]; then mkdir /etc/ssl/certs;fi
@@ -11,6 +11,7 @@ if [ -s ${TEMP} ];then
         (cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
     fi
     rm ${TEMP}
+    /usr/bin/c_rehash
     exit 0 
 fi
 rm ${TEMP}
