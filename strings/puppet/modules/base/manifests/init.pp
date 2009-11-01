@@ -28,13 +28,6 @@ class base {
         mode   => '0744',
         source => 'puppet:///base/scripts/pupprun',
     }
-    file { '/root/.ssh/authorized_keys':
-        owner  => 'root',
-        group  => 'root',
-        mode   => '0640',
-        source => 'puppet:///base/root/ssh-authorized_keys',
-        require => File['/root/.ssh']
-    }
     case $kernelrelease {
         '2.6.18-128.2.1.el5.028stab064.7': { include base::spry_vps }
         '2.6.18.8-linode16': { include base::linode_vps::pv_grub }
