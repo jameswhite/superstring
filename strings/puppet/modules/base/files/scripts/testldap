@@ -1,5 +1,5 @@
 #!/bin/bash
-exit 0;
+export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 ldap-bind(){
     LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
     RESULT=1; IDX=0;
@@ -13,5 +13,4 @@ ldap-bind(){
     done
     return ${RESULT}
 }
-ldap-bind > /dev/null 2>&1
-exit $?
+exit ldap-bind > /dev/null 2>&1
