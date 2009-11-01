@@ -7,7 +7,9 @@ TEMP=$(mktemp /var/tmp/cacert.XXXX)
 wget -qO ${TEMP}  "${CERT_URI}"
 if [ -s ${TEMP} ];then
     wget -qO /etc/ssl/certs/${DOMAIN}_trustchain.pem "${CERT_URI}"
-    (cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
+    if [ ! -h /etc/ssl/certs/domain_trustchain.pem ];then
+        (cd /etc/ssl/certs; ln -s /etc/ssl/certs/${DOMAIN}_trustchain.pem domain_trustchain.pem)
+    fi
     rm ${TEMP}
     exit 0 
 fi
