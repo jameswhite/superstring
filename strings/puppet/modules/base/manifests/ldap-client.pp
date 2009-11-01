@@ -26,6 +26,11 @@ class base::ldap-client {
         mode   => '0744',
         source => 'puppet:///base/scripts/testldap'
     }
+    exec { 'testldap':
+         path    => '/usr/local/sbin',
+         command => 'testldap',
+         require => File['/usr/local/sbin/testldap'],
+    }
     exec { 'ldap-conf-init':
          path    => '/usr/local/sbin',
          command => 'ldap.conf-init',
