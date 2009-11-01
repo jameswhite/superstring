@@ -1,4 +1,5 @@
 #!/bin/bash
+exit 0;
 ldap-bind(){
     LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
     RESULT=1; IDX=0;
