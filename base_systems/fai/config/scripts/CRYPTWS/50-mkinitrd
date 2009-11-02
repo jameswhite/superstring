@@ -1,0 +1,38 @@
+#! /bin/bash
+
+error=0 ; trap "error=$((error|1))" ERR
+
+# Copy our customized hook and script and "patch" the nfsroot
+rsync -avzP /var/lib/fai/config/files/etc/initramfs-tools/ /etc/initramfs-tools/
+
+# Copy our customized hook and script and "patch" the target so subsequent runs will work...
+rsync -avzP /var/lib/fai/config/files/etc/initramfs-tools/ $target/etc/initramfs-tools/
+
+# copy important files back to nfsroot so we can run mkinitramfs
+cp $target/etc/fstab /etc/fstab
+cp $target/etc/crypttab /etc/crypttab
+
+# Copy the keys to /boot and rewrite the crypttab
+if [ -f $target/etc/crypttab ];then 
+    for key in `awk '{print $3}' $target/etc/crypttab`; do
+        if [ -f $key ];then
+            /bin/cp $key $target/boot/
+        fi
+    done
+    /bin/cp $target/etc/crypttab $target/etc/crypttab.bak
+    sed -e 's/\/tmp\/fai/\/boot/' $target/etc/crypttab.bak > $target/etc/crypttab
+    /bin/cp $target/etc/crypttab $target/boot
+fi
+
+# Create an initrd that will actually boot
+TARGETVERSION=$(/bin/ls $target/lib/modules)
+mkinitramfs -r $target -o $target/boot/initrd.img-${TARGETVERSION} ${TARGETVERSION}
+
+# Used to debug the initrd, no longer needed...
+# ifconfig eth0 10.0.5.130 netmask 255.255.255.0 up
+# route add default gw 10.0.5.1
+# [ ! -d /root/.ssh ] && mkidir -p /root/.ssh 
+# ssh-keyscan 10.0.5.1 > /root/.ssh/known_hosts
+# scp /target/boot/initrd.img-2.6.26-2-486 whitejs@10.0.5.1:/tmp
+
+exit $error
