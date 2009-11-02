@@ -1,6 +1,12 @@
 #/bin/bash
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 LOG="/var/log/wcyd.log"
+
+########################################################################
+# make sure we've got the latest package list on a apt/yum system...
+########################################################################
+apt-get update >> $LOG 2>&1 || yum update >> $LOG 2>&1
+
 ########################################################################
 # This is the bare-minimum a host needs to get initialized into the farm
 ########################################################################
