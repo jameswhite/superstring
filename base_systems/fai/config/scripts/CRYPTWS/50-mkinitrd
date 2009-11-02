@@ -24,8 +24,9 @@ if [ -f /tmp/fai/crypttab ];then
     /bin/cp $target/etc/crypttab $target/etc/crypttab.bak
     sed -e 's/\/tmp\/fai/\/boot/' $target/etc/crypttab.bak > $target/etc/crypttab
 
-    # copy the crypttab to $target/boot so we can hook it from there
+    # copy the crypttab to /boot so we can hook it from there, and to $target/boot on subsequent runs
     /bin/cp $target/etc/crypttab $target/boot
+    /bin/cp $target/etc/crypttab /boot
 fi
 
 # Create an initrd that will actually boot
