@@ -18,7 +18,7 @@ esac
 log_begin_msg "Starting lvm-on-crypt"
 
 # start all crypto volumes in /boot/crypttab
-for READY_DEVICE in `cat /boot/crypttab | awk '{print "cryptsetup --key-file "$3" "luksOpen" "$2" "$1}'`;do
+/bin/cat /boot/crypttab | awk '{print "cryptsetup --key-file "$3" "luksOpen" "$2" "$1}'`| while read READY_DEVICE ; do
     ${READY_DEVICE}
 done
 

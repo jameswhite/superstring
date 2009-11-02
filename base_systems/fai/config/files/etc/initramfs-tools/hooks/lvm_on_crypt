@@ -19,7 +19,7 @@ esac
 cp -p $target/boot/crypttab ${DESTDIR}/boot
 
 # copy the keys referenced in the crypttab into /boot on initrd
-for key in `cat $target/boot/crypttab|sed -e 's/#.*//g'|grep .|awk '{print $3}' 
+for key in `/bin/cat /tmp/fai/crypttab|sed -e 's/#.*//g'|grep .|awk '{print $3}' 
 if [ -f $target/${key} ];then
    cp -p $target/${key} ${DESTDIR}/boot
 fi
