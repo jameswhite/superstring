@@ -16,8 +16,15 @@ esac
 # Begin real processing below this line 
 
 log_begin_msg "Starting lvm-on-crypt"
-dmsetup ls | grep crypt_dev_sda2
-cryptsetup --key-file /boot/crypt_dev_sda2 luksOpen /dev/sda2 crypt_dev_sda2
-lvm pvscan
-lvm vgchange -a y vg0
+
+# start all crypto volumes in /boot/crypttab
+for READY_DEVICE in `cat /boot/crypttab | awk '{print "cryptsetup --key-file "$3" "luksOpen" "$2" "$1}'`;do
+    ${READY_DEVICE}
+done
+
+# start all volume groups that were just decrypted
+for VG in `lvm pvscan | grep "^ *PV"|awk '{print $4}'| sort -u`;do 
+    lvm vgchange -a y ${VG}
+done
+
 exit 0
