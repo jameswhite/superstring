@@ -29,8 +29,8 @@ class base {
         source => 'puppet:///base/scripts/pupprun',
     }
     case $kernelrelease {
-        '2.6.18-128.2.1.el5.028stab064.7': { include base::spry_vps }
-        '2.6.18.8-linode16': { include base::linode_vps::pv_grub }
+        '2.6.18-128.2.1.el5.028stab064.7': { include base::vps::spry }
+        '2.6.18.8-linode16': { include base::vps::linode::pv_grub }
         '2.6.26-2-xen-686': { include base::autodir }
     }
     case $operatingsystem {
@@ -71,5 +71,6 @@ class base::debian {
 class base::debian::lenny {
 }
 
-class base::spry_vps {
+class base::vps::spry {
 }
+

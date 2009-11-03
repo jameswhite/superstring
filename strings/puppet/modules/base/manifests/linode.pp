@@ -1,4 +1,4 @@
-class base::linode_pv_grub {
+class base::vps::linode::pv_grub {
     package { 'linux-image-xen-686': 
          ensure => 'latest' 
     }
