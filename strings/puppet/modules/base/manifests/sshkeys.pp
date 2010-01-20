@@ -22,5 +22,5 @@ class base::sshkeys {
             refreshonly => 'true',
             require => File['/usr/local/sbin/allauthkeys'],
             subscribe => File['/usr/local/sbin/allauthkeys']
-         }
+   }
 }
