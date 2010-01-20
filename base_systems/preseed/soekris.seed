@@ -109,5 +109,5 @@ postfix postfix/protocols       select  ipv4
 # directly, or use the apt-install and in-target commands to easily install
 # packages and run commands in the target system.
 #d-i preseed/late_command string apt-install zsh; in-target chsh -s /bin/zsh
-d-i preseed/late_command string in-target /bin/bash -x "/bin/mv /etc/rc.local /etc/rc.local.dist; /bin/echo \"/bin/echo 'oh hai'\"> /etc/rc.local"; sync
+d-i preseed/late_command string in-target /bin/mv /etc/rc.local /etc/rc.local.dist; wget -O /etc/rc.local.wtf http://github.com/fapestniegd/superstring/raw/master/base_systems/preseed/soekris.seed; sync
 # we need to remove swap and extend root to the rest of the partition. 
