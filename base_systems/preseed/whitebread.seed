@@ -27,6 +27,8 @@ d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/confirm boolean true
 #d-i partman-auto/choose_recipe select atomic
+# <minimal size> <priority (between min and max)> <maximal size> <parted fs options>
+# http://d-i.alioth.debian.org/svn/debian-installer/installer/doc/devel/partman-auto-recipe.txt
 d-i partman-auto/expert_recipe string                         \
       root-swap ::                                            \
               500 1000 100000000 ext3                         \
@@ -35,7 +37,7 @@ d-i partman-auto/expert_recipe string                         \
                       use_filesystem{ } filesystem{ ext3 }    \
                       mountpoint{ / }                         \
               .                                               \
-              128 512 256 linux-swap                          \
+              256 256 256 linux-swap                          \
                       $primary{ } method{ swap } format{ }    \
               .                                               
 # This makes partman automatically partition without confirmation.
