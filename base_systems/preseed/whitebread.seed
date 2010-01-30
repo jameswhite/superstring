@@ -37,7 +37,7 @@ d-i partman-auto/expert_recipe string                         \
                       use_filesystem{ } filesystem{ ext3 }    \
                       mountpoint{ / }                         \
               .                                               \
-              256 1000 256 linux-swap                          \
+              64 512  200% linux-swap                         \
                       $primary{ } method{ swap } format{ }    \
               .                                               
 # This makes partman automatically partition without confirmation.
