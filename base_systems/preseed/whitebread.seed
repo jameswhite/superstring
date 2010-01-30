@@ -1,4 +1,8 @@
 #### Contents of the preconfiguration file
+# whitebread.seed
+# partition 1: mounted on /
+# partition 2: 256MB swap
+
 ### Localization
 # Locale sets language and country.
 d-i debian-installer/locale string en_US
@@ -22,17 +26,17 @@ d-i partman-auto/method string regular
 d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/confirm boolean true
-d-i partman-auto/choose_recipe select atomic
-#d-i partman-auto/expert_recipe string                         \
-#      root-swap ::                                            \
-#              500 1000 100000000 ext3                         \
-#                      $primary{ } $bootable{ }                \
-#                      method{ format } format{ }              \
-#                      use_filesystem{ } filesystem{ ext3 }    \
-#                      mountpoint{ / }                         \
-#              100% 100 200% linux-swap                        \
-#                      $primary{ } method{ swap } format{ }    \
-#              .
+#d-i partman-auto/choose_recipe select atomic
+d-i partman-auto/expert_recipe string                         \
+      root-swap ::                                            \
+              500 1000 100000000 ext3                         \
+                      $primary{ } $bootable{ }                \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext3 }    \
+                      mountpoint{ / }                         \
+              0 0 0 linux-swap                                \
+                      $primary{ } method{ swap } format{ }    \
+              .
 # This makes partman automatically partition without confirmation.
 d-i partman/confirm_write_new_label boolean true
 d-i partman/choose_partition \
