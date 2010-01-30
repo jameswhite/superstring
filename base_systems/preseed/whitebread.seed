@@ -34,9 +34,7 @@ d-i partman-auto/expert_recipe string                         \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext3 }    \
                       mountpoint{ / }                         \
-              0 0 0 linux-swap                                \
-                      $primary{ } method{ swap } format{ }    \
-              .
+              .                                               
 # This makes partman automatically partition without confirmation.
 d-i partman/confirm_write_new_label boolean true
 d-i partman/choose_partition \
