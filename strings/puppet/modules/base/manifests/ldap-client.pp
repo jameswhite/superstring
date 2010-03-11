@@ -107,4 +107,10 @@ class base::ldap-client {
          require => Package['nscd'],
          refreshonly => 'true'
     }
+    service { "nscd":
+        ensure => running,
+        enable => true,
+        hasstatus => true,
+        status => '/etc/init.d/nscd status"
+    }
 }

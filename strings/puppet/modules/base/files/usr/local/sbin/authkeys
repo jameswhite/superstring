@@ -46,7 +46,7 @@ if [ ! -z "${group}" ] ;then
                           -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
                           -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
                                "(&(uid=${admin})(sshPublicKey=*))"        \
-            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey::" | awk '{print $2}' \
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:: " | awk '{print $2}' \
             | perl -MMIME::Base64 -le ' 
                                         while(chomp($line=<STDIN>)){ 
                                                                      $key=decode_base64($line); 
@@ -59,7 +59,7 @@ if [ ! -z "${group}" ] ;then
                           -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
                           -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
                                "(&(uid=${admin})(sshPublicKey=*))"        \
-            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:" | sed -e 's/^sshPublicKey: //'
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey: " | sed -e 's/^sshPublicKey: //'
         done >> ${TMPFILE}
     done
 fi
@@ -72,7 +72,7 @@ if [ ! -z "${user}" ] ;then
                           -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
                           -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
                                "(&(uid=${admin})(sshPublicKey=*))"        \
-        | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey::" | awk '{print $2}' \
+        | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:: " | awk '{print $2}' \
         | perl -MMIME::Base64 -le ' 
                                     while(chomp($line=<STDIN>)){ 
                                                                  $key=decode_base64($line); 
@@ -85,7 +85,7 @@ if [ ! -z "${user}" ] ;then
                           -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
                           -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
                                "(&(uid=${admin})(sshPublicKey=*))"        \
-            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:" | sed -e 's/^sshPublicKey: //'
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey: " | sed -e 's/^sshPublicKey: //'
     done >> ${TMPFILE}
 fi
 
