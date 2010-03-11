@@ -111,6 +111,6 @@ class base::ldap-client {
         ensure => running,
         enable => true,
         hasstatus => true,
-        status => '/etc/init.d/nscd status"
+        status => '/etc/init.d/nscd status'
     }
 }
