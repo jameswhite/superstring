@@ -28,6 +28,12 @@ class base {
         mode   => '0744',
         source => 'puppet:///base/scripts/pupprun',
     }
+    cron { "pupprun":
+        ensure  => present,
+        command => "/usr/local/sbin/pupprun",
+        user    => 'root',
+        minute  => '*/15',
+    }
     case $kernelrelease {
         '2.6.18-128.2.1.el5.028stab064.7': { include base::vps::spry }
         '2.6.18.8-linode16': { include base::vps::linode::pv_grub }
