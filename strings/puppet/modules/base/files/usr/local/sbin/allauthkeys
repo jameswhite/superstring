@@ -1,6 +1,6 @@
 #!/bin/bash
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-/usr/local/sbin/authkeys -g bofh -o root -p 0600 -f /root/.ssh/authorized_keys
+/usr/local/sbin/authkeys -g bofh -r freyr -r thor -r odin -o root -p 0600 -f /root/.ssh/authorized_keys
 for user in $(
                ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
                           -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \

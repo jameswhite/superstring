@@ -16,6 +16,7 @@ case $1 in
     -h) usage;shift 1;;
     -o) owner=$2;shift 2;;
     -p) perms=$2;shift 2;;
+    -r) roots="${roots} $2";shift 2;;
     -u) user="${user} $2";shift 2;;
     --) shift;break;; # end of options
     -*) echo "error: no such option $1. -h for help";exit 1;;
@@ -85,6 +86,31 @@ if [ ! -z "${user}" ] ;then
                           -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
                           -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
                                "(&(uid=${admin})(sshPublicKey=*))"        \
+            | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey: " | sed -e 's/^sshPublicKey: //'
+    done >> ${TMPFILE}
+fi
+
+# Append all the root@hosts ssh keys
+if [ ! -z "${roots}" ] ;then 
+    for system in `echo ${roots}`;do
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(cn=${system})(sshPublicKey=*))"        \
+        | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey:: " | awk '{print $2}' \
+        | perl -MMIME::Base64 -le ' 
+                                    while(chomp($line=<STDIN>)){ 
+                                                                 $key=decode_base64($line); 
+                                                                 chomp($key); 
+                                                                 print $key;
+                                                               }
+                                  '
+               ldapsearch -xH "$(grep '^uri'        /etc/ldap/ldap.conf |sed -e 's/^uri *//')"         \
+                          -b  "$(grep '^base'       /etc/ldap/ldap.conf |sed -e 's/^base *//')"        \
+                          -D  "$(grep '^binddn'     /etc/ldap/ldap.conf |sed -e 's/^binddn *//')"      \
+                          -w  "$(grep '^bindpw'     /etc/ldap/ldap.conf |sed -e 's/^bindpw *//')"      \
+                               "(&(cn=${system})(sshPublicKey=*))"        \
             | tr "\n" ''| sed -e 's/ //g' | tr '' "\n" | grep "sshPublicKey: " | sed -e 's/^sshPublicKey: //'
     done >> ${TMPFILE}
 fi
