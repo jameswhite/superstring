@@ -14,7 +14,7 @@ d-i netcfg/choose_interface select eth0
 
 ### Mirror settings
 d-i mirror/country string manual
-d-i mirror/http/hostname string ftp.us.debian.org
+d-i mirror/http/hostname string ftp.gtlib.gatech.edu
 d-i mirror/http/directory string /debian
 
 # Suite to install.
