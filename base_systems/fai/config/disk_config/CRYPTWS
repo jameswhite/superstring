@@ -11,7 +11,7 @@
 # ../files/etc/initramfs-tools/scripts/local-top/lvm_on_crypt 
 #
 disk_config sda bootable:1
-primary  /boot         250	  ext3   rw
+primary  /boot         128	  ext3   rw
 primary  -:encrypt    9472-15360   -      -
 primary  -:encrypt    1024-       -      -
  
