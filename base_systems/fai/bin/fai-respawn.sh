@@ -1,12 +1,14 @@
 #!/bin/bash
 unset ISOIMAGE
 unset USBIMAGE
+SRV='/opt/local'
 
 cat<<EOF > /etc/apt/sources.list
 deb http://www.informatik.uni-koeln.de/fai/download experimental koeln
-deb http://ftp.us.debian.org/debian/ stable main non-free
+deb http://ftp.gtlib.gatech.edu/debian/ stable main non-free
 deb http://security.debian.org/ stable/updates main non-free
 EOF
+
 apt-get update && apt-get upgrade
 
 # fai package signing key
@@ -19,8 +21,8 @@ cp /etc/apt/sources.list /etc/fai/apt/sources.list
 
 # there isn't enough space in the gnome /srv, so we hack it.
 [ -d /srv ] && /bin/rmdir /srv
-[ ! -d /opt/local/srv ] && mkdir -p /opt/local/srv
-[ ! -h /srv ] && ln -s /opt/local/srv /srv
+[ ! -d ${SRV}/srv ] && mkdir -p ${SRV}/srv
+[ ! -h /srv ] && ln -s ${SRV}/srv /srv
 
 if [ ! -d /var/cache/git/superstring ];then
     if [ ! -d /var/cache/git ];then
