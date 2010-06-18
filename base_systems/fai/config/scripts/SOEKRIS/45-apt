@@ -2,23 +2,23 @@
 
 error=0 ; trap "error=$((error|1))" ERR
 
-#cat<<EOF > $target/etc/apt/sources.list
-#deb http://www.backports.org/debian/ lenny-backports main
-#deb http://ftp.us.debian.org/debian/ stable main non-free
-#deb http://security.debian.org/ stable/updates main non-free
-#
-#deb-src http://ftp.us.debian.org/debian/ stable main
-#deb-src http://www.backports.org/debian/ lenny-backports main
-#EOF
+cat<<EOF > $target/etc/apt/sources.list
+deb http://www.backports.org/debian/ lenny-backports main
+deb http://ftp.us.debian.org/debian/ stable main non-free
+deb http://security.debian.org/ stable/updates main non-free
 
-#cat<<EOF > $target/etc/apt/preferences
-#Package: *
-#Pin: release a=lenny
-#Pin-Priority: 500
-#
-#Package: *
-#Pin: release a=lenny-backports
-#Pin-Priority: 200
-#EOF
-#
+deb-src http://ftp.us.debian.org/debian/ stable main
+deb-src http://www.backports.org/debian/ lenny-backports main
+EOF
+
+cat<<EOF > $target/etc/apt/preferences
+Package: *
+Pin: release a=lenny
+Pin-Priority: 500
+
+Package: *
+Pin: release a=lenny-backports
+Pin-Priority: 200
+EOF
+
 exit $error
