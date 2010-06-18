@@ -12,21 +12,37 @@ rsync -avzP /var/lib/fai/config/files/etc/initramfs-tools/ $target/etc/initramfs
 cp $target/etc/fstab /etc/fstab
 cp $target/etc/crypttab /etc/crypttab
 
-# Copy the keys to /boot and rewrite the crypttab
-if [ -f $target/etc/crypttab ];then 
-    for key in `awk '{print $3}' $target/etc/crypttab`; do
+# Copy the keys from the tmp dir to nfsroot's /boot for this run of mkinitrd, and to $target/boot for future runs
+if [ -f /tmp/fai/crypttab ];then 
+    for key in `awk '{print $3}' /tmp/fai/crypttab`; do
         if [ -f $key ];then
             /bin/cp $key $target/boot/
+            /bin/cp $key /boot/
         fi
     done
+    # rewrite the crypttab to use /boot instead of fai's temp space
     /bin/cp $target/etc/crypttab $target/etc/crypttab.bak
     sed -e 's/\/tmp\/fai/\/boot/' $target/etc/crypttab.bak > $target/etc/crypttab
+
+    # copy the crypttab to /boot so we can hook it from there, and to $target/boot on subsequent runs
     /bin/cp $target/etc/crypttab $target/boot
+    /bin/cp $target/etc/crypttab /boot
 fi
 
+/bin/cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.bak
+/bin/cat<<EOF >>/etc/initramfs-tools/modules
+aes-i586
+dm-mod
+dm-crypt
+sha256-generic
+EOF
+
 # Create an initrd that will actually boot
-TARGETVERSION=$(/bin/ls $target/lib/modules|tail -1)
+TARGETVERSION=$(/bin/ls $target/lib/modules)
 mkinitramfs -r $target -o $target/boot/initrd.img-${TARGETVERSION} ${TARGETVERSION}
+
+# commented out for debugging
+# /bin/cp /etc/initramfs-tools/modules.bak /etc/initramfs-tools/modules 
 
 # Used to debug the initrd, no longer needed...
 # ifconfig eth0 10.0.5.130 netmask 255.255.255.0 up

@@ -5,7 +5,7 @@ timeout 10
 
 color light-gray/black light-gray/red
 # each title is +1 so 6==0 here.
-default 7
+default 8
 
 title |                                                      |
 root (cd)
