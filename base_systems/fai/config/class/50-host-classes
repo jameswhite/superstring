@@ -15,7 +15,7 @@ case $HOSTNAME in
     cryptws)
 	echo "CRYPTWS DHCPC DEMO XORG GNOME";;
     soekris)
-	echo "SOEKRIS DHCPC";;
+	echo "SOEKRIS DHCPC DEMO XORG GNOME";;
     atom*)
 	echo "FAIBASE DHCPC DEMO" ;;
     *)

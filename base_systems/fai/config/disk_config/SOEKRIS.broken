@@ -16,4 +16,5 @@ primary  -:encrypt    1024-       -      -
  
 disk_config lvm
 vg vg0                 sda2
+vg0-swap               swap           512     swap   sw
 vg0-root               /              768-    ext3   rw,errors=remount-ro
