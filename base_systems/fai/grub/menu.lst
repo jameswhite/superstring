@@ -25,6 +25,8 @@ title boot from local disk
 rootnoverify (hd0)
 chainloader +1
 
+#FAI_FLAGS="createvt,debug,reboot,ssh,syslogd,verbose" FAI_ACTION=install 
+
 title Fully Automatic Installation dm-crypt filesystem [workstation layout] (pw: installme)
 password installme
 kernel /boot/vmlinuz boot=live FAI_FLAGS="verbose,createvt" FAI_ACTION=install ip=dhcp:::::eth0:off hostname=cryptws
@@ -37,7 +39,7 @@ initrd /boot/initrd.img
 
 title Fully Automatic Installation dm-crypt filesystem [soekris layout] (pw: installme)
 password installme
-kernel /boot/vmlinuz boot=live FAI_FLAGS="verbose,createvt" FAI_ACTION=install ip=dhcp:::::eth0:off hostname=soekris
+kernel /boot/vmlinuz boot=live FAI_FLAGS="verbose,createvt,reboot" FAI_ACTION=install ip=dhcp:::::eth0:off hostname=soekris
 initrd /boot/initrd.img
 
 title Fully Automatic Installation - demohost (pw: installme)
