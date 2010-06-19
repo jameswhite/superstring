@@ -1,4 +1,7 @@
 PACKAGES aptitude
+aufs-tools
+aufs-modules
+aufs-modules-2.6-486
 fai-client
 cfengine2
 cron
