@@ -30,7 +30,7 @@ class base {
     }
     cron { "pupprun":
         ensure  => present,
-        command => "/usr/local/sbin/pupprun",
+        command => "/usr/local/sbin/pupprun > /var/log/puppet/lastrun.log 2>&1",
         user    => 'root',
         minute  => '*/15',
     }
