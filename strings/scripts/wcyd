@@ -256,7 +256,7 @@ cat<<EOF>${LDIF}
 dn: cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
 changetype: modify
 replace: sshPublicKey
-EOF 
+EOF
 
     # insert the id_dsa.pub
     cat /root/.ssh/id_dsa.pub|while read LINE; do
