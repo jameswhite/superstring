@@ -124,7 +124,7 @@ secret-init(){
     SECRET=$1;
     UMASK=$(umask)
     umask 0077
-    if [ -z $SECRET ];then
+    if [ -z ${SECRET} ];then
         SUPPLIED="Auto-Generated"
         SECRET=$(dd if=/dev/random bs=512 count=1 2>/dev/null|md5sum|\
                      perl -MMIME::Base64 -ne 'print encode_base64($_)')
@@ -356,8 +356,8 @@ esac
 ####################################
 # kluuuuuuuuudge                   #
 ####################################
-wget -O /usr/local/sbin/testldap "http://gist.github.com/raw/480498/2a780ba2a595a3e56d82ec3977ef20db2552f7af/testldap"
-wget -O /usr/local/sbin/ldap.conf-init "http://gist.github.com/raw/480498/c9c317ae23a28bbf152d81f3f4580f23b4c9c744/ldap.conf-init"
+wget -qO /usr/local/sbin/testldap "http://gist.github.com/raw/480498/2a780ba2a595a3e56d82ec3977ef20db2552f7af/testldap"
+wget -qO /usr/local/sbin/ldap.conf-init "http://gist.github.com/raw/480498/c9c317ae23a28bbf152d81f3f4580f23b4c9c744/ldap.conf-init"
 chmod 755 /usr/local/sbin/{ldap.conf-init,testldap}
 
 ####################################
