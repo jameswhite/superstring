@@ -151,6 +151,10 @@ EOSEC
     fi
 }
 
+####################################
+# LDAP Routines 
+# /*FIXME*/ write parallel gist ones
+####################################
 ldap-bind(){
     LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
     RESULT=1; IDX=0;
@@ -347,6 +351,14 @@ case "${DISTRO}" in
         exit -2;
     ;;
 esac
+
+
+####################################
+# kluuuuuuuuudge                   #
+####################################
+wget -O /usr/local/sbin/testldap "http://gist.github.com/raw/480498/2a780ba2a595a3e56d82ec3977ef20db2552f7af/testldap"
+wget -O /usr/local/sbin/ldap.conf-init "http://gist.github.com/raw/480498/c9c317ae23a28bbf152d81f3f4580f23b4c9c744/ldap.conf-init"
+chmod 755 /usr/local/sbin/{ldap.conf-init,testldap}
 
 ####################################
 # Save the secret, bind to ldap    #
