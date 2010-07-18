@@ -101,6 +101,8 @@ puppet_init(){
         (cd /var/cache/git/puppet-strings; git pull)>> ${LOG} 2>&1 
     else
         dig +short -ttxt puppet-strings.$(dnsdomainname) | sed -e 's/"//g'| while read repo; do 
+        githost=$(echo $repo | sed -e 's/.*@//' -e 's/:.*//')
+        ssh-keyscan -t rsa,dsa,rsa1 ${githost} >> /root/.ssh/known_hosts
             if [ ! -d "/var/cache/git/puppet-strings" ];then 
                 (cd /var/cache/git; git clone ${repo})
             fi; 
