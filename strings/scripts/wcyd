@@ -91,25 +91,31 @@ fix_etc_mailname(){
 ####################################
 # git our sources
 ####################################
+# This will now fail if the host's key is not set up in gitosis/keydir
 puppet_init(){
     if [ ! -d /var/cache/git ]; then mkdir -p /var/cache/git;fi
     if [ ! -d /root/.ssh ];  then (umask 077; mkdir -p /root/.ssh);fi
     echo "Downloading Repositories"
     ssh-keyscan github.com >> /root/.ssh/known_hosts >> ${LOG} 2>&1
-    if [ -d /var/cache/git/superstring ];then
-        (cd /var/cache/git/superstring; git pull)>> ${LOG} 2>&1 
+    if [ -d /var/cache/git/puppet-strings ];then
+        (cd /var/cache/git/puppet-strings; git pull)>> ${LOG} 2>&1 
     else
-        (cd /var/cache/git; git clone git://github.com/fapestniegd/superstring.git)>> ${LOG} 2>&1 
+        dig +short -ttxt puppet-strings.$(dnsdomainname) | sed -e 's/"//g'| while read repo; do 
+            if [ ! -d "/var/cache/git/puppet-strings" ];then 
+                (cd /var/cache/git; git clone ${repo})
+            fi; 
+        done
+        (cd /var/cache/git; git clone )>> ${LOG} 2>&1 
     fi    
     [ -d /var/log/puppet ]           ||/bin/mkdir -p /var/log/puppet
-    if [ -f /var/cache/git/superstring/strings/puppet/hosts/$(hostname -f).pp ]; then
-        puppet --debug --modulepath=/var/cache/git/superstring/strings/puppet/modules/ \
-               /var/cache/git/superstring/strings/puppet/hosts/$(hostname -f).pp \
-               > /var/log/puppet/firstrun.log 2>&1
+    if [ -f /var/cache/git/puppet-strings/hosts/$(hostname -f).pp ]; then
+        puppet --debug --modulepath=/var/cache/git/puppet-strings/modules/ \
+               /var/cache/git/puppet-strings/hosts/$(hostname -f).pp \
+                    > /var/log/puppet/firstrun.log 2>&1
     else
-        puppet --debug --modulepath=/var/cache/git/superstring/strings/puppet/modules/ \
-               /var/cache/git/superstring/strings/puppet/hosts/default.pp \
-               > /var/log/puppet/firstrun.log 2>&1
+        puppet --debug --modulepath=/var/cache/git/puppet-strings/modules/ \
+               /var/cache/git/puppet-strings/hosts/default.pp \
+                   > /var/log/puppet/firstrun.log 2>&1
     fi
 }
 
@@ -245,11 +251,11 @@ EOF
 }
 
 ################################################################################
-# MAIN
+# main.c, yo                                                                   #
 ################################################################################
 
 ####################################
-# Some usage validation
+# Some usage validation            #
 ####################################
 [ ${UID} -eq 0 ]||echo "Nononononoo. Be you root."
 if [ $# -lt 1 ]; then
@@ -263,7 +269,7 @@ if [ $? -ne 0 ]; then usage; fi
 hostname "${DESIRED_FQDN}"
 
 ####################################
-# Get minimal facts about system
+# Get minimal facts about system   #
 ####################################
 HNAME=$(hostname -s)
 FQDN=$(hostname -f)
@@ -299,7 +305,6 @@ case "${DISTRO}" in
         fix_etc_hosts "${DESIRED_FQDN}"
         fix_etc_hostname
         fix_etc_mailname
-        puppet_init
     ;;
     CentOS|RedHatEnterpriseServer)
         echo "I appear to be running redhat."
@@ -318,17 +323,39 @@ case "${DISTRO}" in
 esac
 
 ####################################
-# Save the secret, bind to ldap
+# Save the secret, bind to ldap    #
 ####################################
 if [ ! -z ${SUPPLIED_SECRET} ];then
+
+    # if we were supplied a secret, 
+    # then that's our LDAP password
     secret-init ${SUPPLIED_SECRET}
-    ldap.conf-init
-    testldap > /dev/null || exit 1
-    ldap-bind || ldapadd-selfrecord
+
+    ldap.conf-init                  # create our ldap.conf
+    testldap > /dev/null || exit 1  # make sure it works or abort
+
+    # update our public key (for gitosis-admin/keydir)
+    #ldapmodify-selfrecord
+
 else
-    secret-init
-    ldap.conf-init
+
+    # if we were NOT supplied a secret, 
+    # then we create a random one
+    secret-init                     # generate a new random one
+    ldap.conf-init                  # create our ldap.conf
+
+    # update our new secret and our public key (for gitosis)
+    # since we were not provided a secret, LDAP Administrator's
+    # Credentials will be prompted for to write the record.
     ldapadd-selfrecord
+    testldap > /dev/null || exit 1  # make sure it works or abort
 fi
+
+# Refresh the nameservice
+/usr/sbin/nscd -i passwd; /usr/sbin/nscd -i group; /etc/init.d/nscd restart
+
+# we need to trigger a run of regenerate_gitosis.conf here... but how?
+
+# then we hand off the bootstrap to puppet
+puppet_init
 /usr/local/sbin/pupprun > /var/log/puppet/post-wcyd.log
-/etc/init.d/nscd restart
