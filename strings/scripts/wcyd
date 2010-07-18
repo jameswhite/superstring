@@ -280,6 +280,26 @@ EOF
     rm ${LDIF}
 }
 
+####################################################
+# Create our the /root/.ldaprc for our initial bind
+####################################################
+create_ldaprc(){
+cat<<EOF > /root/.ldaprc
+uri $(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|sort -n|\
+    awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/' | tr '\n' ','|\
+    sed -e 's/,$//' -e 's/,/, /g')
+base dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
+ldap_version 3
+scope sub
+TLS_CACERT /etc/ldap/ssl/domain_trustchain.pem
+TLS_REQCERT allow
+binddn cn=$(hostname -s),ou=Hosts,dc=websages,dc=com
+bindpw $(/usr/local/sbin/secret)
+EOF
+chmod 400 /root/.ldaprc
+}
+
+
 ################################################################################
 # main.c, yo                                                                   #
 ################################################################################
@@ -352,7 +372,6 @@ case "${DISTRO}" in
     ;;
 esac
 
-
 ####################################
 # kluuuuuuuuudge                   #
 ####################################
@@ -378,55 +397,33 @@ if [ ! -h /etc/ldap/ssl/domain_trustchain.pem ];then
           /etc/ldap/ssl/domain_trustchain.pem
 fi
 
-####################################################
-# Create our the /root/.ldaprc for our initial bind
-####################################################
-cat<<EOF > /root/.ldaprc
-uri $(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|sort -n|\
-    awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/' | tr '\n' ','|\
-    sed -e 's/,$//' -e 's/,/, /g')
-base dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
-ldap_version 3
-scope sub
-TLS_CACERT /etc/ldap/ssl/domain_trustchain.pem
-TLS_REQCERT allow
-binddn cn=$(hostname -s),ou=Hosts,dc=websages,dc=com
-bindpw $(secret)
-EOF
-chmod 400 /root/.ldaprc
-
 ####################################
 # Save the secret, bind to ldap    #
 ####################################
 if [ ! -z ${SUPPLIED_SECRET} ];then
-
     # if we were supplied a secret, 
     # then that's our LDAP password
     secret-init ${SUPPLIED_SECRET}
-
+    create_ldaprc                   # for our initial bind
     ldap.conf-init                  # create our ldap.conf
     testldap > /dev/null || exit 1  # make sure it works or abort
-
     # update our public key (for gitosis-admin/keydir)
     ldapmodify-sshpublickey
 
 else
-
     # if we were NOT supplied a secret, 
     # then we create a random one
     secret-init                     # generate a new random one
+    create_ldaprc                   # for our initial bind
     ldap.conf-init                  # create our ldap.conf
-
     # update our new secret and our public key (for gitosis)
     # since we were not provided a secret, LDAP Administrator's
     # Credentials will be prompted for to write the record.
     ldapadd-selfrecord
     testldap > /dev/null || exit 1  # make sure it works or abort
 fi
-
 # Refresh the nameservice
 /usr/sbin/nscd -i passwd; /usr/sbin/nscd -i group; /etc/init.d/nscd restart
-
 # we need to trigger a run of regenerate_gitosis.conf here... but how?
 
 # then we hand off the bootstrap to puppet
