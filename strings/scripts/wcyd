@@ -359,6 +359,41 @@ esac
 wget -qO /usr/local/sbin/testldap "http://gist.github.com/raw/480498/2a780ba2a595a3e56d82ec3977ef20db2552f7af/testldap"
 wget -qO /usr/local/sbin/ldap.conf-init "http://gist.github.com/raw/480498/c9c317ae23a28bbf152d81f3f4580f23b4c9c744/ldap.conf-init"
 chmod 755 /usr/local/sbin/{ldap.conf-init,testldap}
+wget -qO /usr/local/sbin/ldap.conf-init "http://gist.github.com/raw/480498/c9c317ae23a28bbf152d81f3f4580f23b4c9c744/ldap.conf-init"
+
+####################################################
+# Get the ca-cert installed for this domain
+####################################################
+if [ ! -d "/etc/ldap/ssl" ]; then /bin/mkdir -p "/etc/ldap/ssl"; fi
+dig +short -ttxt ca-cert.$(dnsdomainname)|sed -e 's/"//g'|while read url;do
+    if [ ! -f "/etc/ssl/certs/$(dnsdomainname)_trustchain.pem" ];then
+        wget -qO "/etc/ssl/certs/$(dnsdomainname)_trustchain.pem" "${url}"
+    fi
+done
+if [ -f /etc/ssl/certs/domain_trustchain.pem ];then
+    (cd /etc/ssl/certs; c_rehash > /dev/null 2>&1)
+fi
+if [ ! -h /etc/ldap/ssl/domain_trustchain.pem ];then
+    ln -s /etc/ssl/certs/$(dnsdomainname)_trustchain.pem \
+          /etc/ldap/ssl/domain_trustchain.pem
+fi
+
+####################################################
+# Create our the /root/.ldaprc for our initial bind
+####################################################
+cat<<EOF > /root/.ldaprc
+uri $(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|sort -n|\
+    awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/' | tr '\n' ','|\
+    sed -e 's/,$//' -e 's/,/, /g')
+base dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
+ldap_version 3
+scope sub
+TLS_CACERT /etc/ldap/ssl/domain_trustchain.pem
+TLS_REQCERT allow
+binddn cn=$(hostname -s),ou=Hosts,dc=websages,dc=com
+bindpw $(secret)
+EOF
+chmod 400 /root/.ldaprc
 
 ####################################
 # Save the secret, bind to ldap    #
