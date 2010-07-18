@@ -250,6 +250,32 @@ EOF
     rm ${LDIF}
 }
 
+ldapmodify-sshpublickey(){
+    LDIF=$(mktemp /tmp/ldif.XXXX)
+cat<<EOF>${LDIF}
+dn: cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')
+changetype: modify
+replace: sshPublicKey
+EOF 
+
+    # insert the id_dsa.pub
+    cat /root/.ssh/id_dsa.pub|while read LINE; do
+        ldif_dump "sshPublicKey" "${LINE}" >> ${LDIF}
+    done
+
+    LDAP_URIS=($(dig +short -tsrv _ldap._tcp.$(dnsdomainname)|sort -nr|awk '{print "ldaps://"$4":"$3}'|sed -e 's/\.:/:/'))
+    RESULT=1; IDX=0;
+    while [ ${RESULT} -ne 0 -a ${IDX} -lt ${#LDAP_URIS[@]} ];do
+        echo "${LDAP_URIS[${IDX}]}"
+        ldapmodify -xH ${LDAP_URIS[${IDX}]}                                                  \
+                   -D "cn=$(hostname -s),ou=Hosts,dc=$(dnsdomainname|sed -e 's/\./,dc=/g')" \
+                   -w "$(secret)" -f ${LDIF}
+        RESULT=$?
+        IDX=`expr ${IDX} + 1`
+    done
+    rm ${LDIF}
+}
+
 ################################################################################
 # main.c, yo                                                                   #
 ################################################################################
@@ -335,7 +361,7 @@ if [ ! -z ${SUPPLIED_SECRET} ];then
     testldap > /dev/null || exit 1  # make sure it works or abort
 
     # update our public key (for gitosis-admin/keydir)
-    #ldapmodify-selfrecord
+    ldapmodify-sshpublickey
 
 else
 
