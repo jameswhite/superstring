@@ -108,7 +108,20 @@ puppet_init(){
             fi; 
         done
     fi    
-    [ -d /var/log/puppet ]           ||/bin/mkdir -p /var/log/puppet
+    # We've switched to puppet 0.25.4, and lenny has 0.24.5 which cannot read the configs for the latter version,
+    if [ "$(/usr/bin/puppet -V)" <> "0.25.4" ]; then 
+        if [ -f /var/cache/git/puppet-strings/hosts/puppet-upgrade.pp ]; then
+            puppet --debug --modulepath=/var/cache/git/puppet-strings/modules/ \
+                   /var/cache/git/puppet-strings/hosts/puppet-upgrade.pp \
+                        > /var/log/puppet/upgrade-puppet.log 2>&1
+        
+        fi
+    fi
+    if [ "$(/usr/bin/puppet -V)" <> "0.25.4" ]; then 
+        exit -1; # No point in continuing if puppet is just going to puke.
+    fi
+    # Now we can get down to brass tacks...
+    [ -d /var/log/puppet ] ||/bin/mkdir -p /var/log/puppet
     if [ -f /var/cache/git/puppet-strings/hosts/$(hostname -f).pp ]; then
         puppet --debug --modulepath=/var/cache/git/puppet-strings/modules/ \
                /var/cache/git/puppet-strings/hosts/$(hostname -f).pp \

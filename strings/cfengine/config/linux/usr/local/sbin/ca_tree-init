@@ -49,7 +49,7 @@ WORKDIR=$(mktemp -d /dev/shm/certificate.XXXXX)
 ###################################################################
 # OpenSSL configuration Template
 ###################################################################
-cat<<EOTPL>${WORKDIR}/openssl.tpl
+cat<<EOTPL >${WORKDIR}/openssl.tpl
 HOME                    = .
 RANDFILE                = \$ENV::HOME/.rnd
 DOMAIN                  = ${DOMAIN}
