@@ -120,6 +120,10 @@ puppet_init(){
     if [ "$(/usr/bin/puppet -V)" != "0.25.4" ]; then 
         exit -1; # No point in continuing if puppet is just going to puke.
     fi
+    # Import our facts (in alphabetical order with no collision detection)
+    if [ ! -z "$(ls /var/cache/git/puppet-strings/modules/*/lib/facter 2>/dev/null)" ];then
+        export FACTERLIB=$(find  /var/cache/git/puppet-strings/modules/*/lib/facter -type d | xargs | tr " " ":")
+    fi
     # Now we can get down to brass tacks...
     [ -d /var/log/puppet ] ||/bin/mkdir -p /var/log/puppet
     if [ -f /var/cache/git/puppet-strings/hosts/$(hostname -f).pp ]; then
