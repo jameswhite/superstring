@@ -16,7 +16,7 @@ runscript(){
     LENGTH=0; # github is giving me 0 byte replies...
     ATTEMPT=0
     while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 10 ]; do
-        /usr/bin/wget -qO /tmp/${script} "${STRINGROOT}${script}?raw=true"
+        /usr/bin/wget -qO /tmp/${script} "${STRINGROOT}/${script}"
         LENGTH=$(/usr/bin/wc -l /tmp/${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
         ATTEMPT=`expr ${ATTEMPT} + 1`
         echo "script - ${script} (attempt ${ATTEMPT}) ${LENGTH} line reply."
