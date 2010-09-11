@@ -2,7 +2,7 @@
 export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 export LOGDIR="/var/log/superstring"
 export LOG="${LOGDIR}/singularity.log"
-export STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
+export STRINGROOT="http://github.com/fapestniegd/superstring/raw/master/strings/scripts"
 if [ ! -d ${LOGDIR} ];then mkdir -p ${LOGDIR};fi
 touch ${LOG}
 log(){
