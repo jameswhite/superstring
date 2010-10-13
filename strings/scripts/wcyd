@@ -127,6 +127,9 @@ puppet_init(){
     if [ ! -z "$(ls /var/cache/git/puppet-strings/modules/*/lib/facter 2>/dev/null)" ];then
         export FACTERLIB=$(find  /var/cache/git/puppet-strings/modules/*/lib/facter -type d | xargs | tr " " ":")
     fi
+    # Other facts
+    export FACTERLIB=$FACTERLIB:/var/cache/git/puppet-strings/facts
+
     # Now we can get down to brass tacks...
     [ -d /var/log/puppet ] ||/bin/mkdir -p /var/log/puppet
     if [ -f /var/cache/git/puppet-strings/hosts/$(hostname -f).pp ]; then
