@@ -112,7 +112,7 @@ puppet_init(){
 
     # Ensure this is a greather than compare not an exactly --> .25.4 
     # We've switched to puppet 0.25.4, and lenny has 0.24.5 which cannot read the configs for the latter version,
-    if [ "$(/usr/bin/puppet -V)" != "0.25.4" ]; then 
+    if [ "$(/usr/bin/puppet -V)" != "2.6.2" ]; then 
         if [ -f /var/cache/git/puppet-strings/hosts/puppet-upgrade.pp ]; then
             puppet --debug --modulepath=/var/cache/git/puppet-strings/modules/ \
                    /var/cache/git/puppet-strings/hosts/puppet-upgrade.pp \
@@ -120,7 +120,7 @@ puppet_init(){
         
         fi
     fi
-    if [ "$(/usr/bin/puppet -V)" != "0.25.4" ]; then 
+    if [ "$(/usr/bin/puppet -V)" != "2.6.2" ]; then 
         exit -1; # No point in continuing if puppet is just going to puke.
     fi
     # Import our facts (in alphabetical order with no collision detection)
