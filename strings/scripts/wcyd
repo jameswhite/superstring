@@ -417,9 +417,14 @@ done
 if [ -f /etc/ssl/certs/$(dnsdomainname)_trustchain.pem ];then
     (cd /etc/ssl/certs; c_rehash > /dev/null 2>&1)
 fi
+
 if [ ! -h /etc/ldap/ssl/domain_trustchain.pem ];then
     ln -s /etc/ssl/certs/$(dnsdomainname)_trustchain.pem \
           /etc/ldap/ssl/domain_trustchain.pem
+fi
+
+if [ ! -h /etc/ssl/certs/domain_trustchain.pem ];then
+    (cd /etc/ssl/certs; ln -s $(dnsdomainname)_trustchain.pem domain_trustchain.pem)
 fi
 
 ####################################
