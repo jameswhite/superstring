@@ -20,7 +20,7 @@ SECRET=$(wget -qO - http://169.254.169.254/latest/user-data| \
 STRINGROOT=$(wget -qO - http://169.254.169.254/latest/user-data| \
     grep "^ *stringroot:"|sed -e 's/.*stringroot: *//g')
 if [ -z ${STRINGROOT} ];then
-    STRINGROOT="http://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
+    STRINGROOT="https://github.com/fapestniegd/superstring/tree/master%2Fstrings%2Fscripts%2F"
 fi
 LOGDIR="/var/log/superstring"
 if [ ! -d ${LOGDIR} ];then mkdir -p ${LOGDIR};fi
@@ -31,7 +31,7 @@ for script in `wget -qO - http://169.254.169.254/latest/user-data |\
     LENGTH=0; # github is giving me 0 byte replies...
     ATTEMPT=0
     while [ ${LENGTH} -eq 0 -a ${ATTEMPT} -lt 10 ]; do
-        /usr/bin/wget -qO /tmp/${script} "${STRINGROOT}${script}?raw=true"
+        /usr/bin/wget --no-check-certificate -qO /tmp/${script} "${STRINGROOT}${script}?raw=true"
         LENGTH=$(/usr/bin/wc -l /tmp/${script}|/bin/sed -e's/ .*//g' -e's/^ *//g')
         ATTEMPT=`expr ${ATTEMPT} + 1`
         echo "script - ${script} (attempt ${ATTEMPT}) ${LENGTH} line reply."
