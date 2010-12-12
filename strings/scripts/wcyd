@@ -375,7 +375,8 @@ case "${DISTRO}" in
         [ -z $(which dig) ] && apt-get install -y dns-browse >> ${LOG} 2>&1
         [ -z $(which git) ] && apt-get install -y git-core >> ${LOG} 2>&1
         [ -z $(which ldapdelete) ] && apt-get install -y ldap-utils >> ${LOG} 2>&1
-        [ -z $(which puppet) ] && apt-get install -y puppet >> ${LOG} 2>&1
+        [ -z $(which puppet) ] && apt-get install -y puppet libldap-ruby1.8 >> ${LOG} 2>&1
+        [ ! -f /usr/lib/ruby/1.8/i486-linux/ldap.so ] && apt-get install -y libldap-ruby1.8 >> ${LOG} 2>&1
         fix_etc_hosts "${DESIRED_FQDN}"
         fix_etc_hostname
         fix_etc_mailname
